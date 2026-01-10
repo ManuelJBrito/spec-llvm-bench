@@ -90,7 +90,7 @@ INSTALL_PREFIX="$(pwd)/bin"
 
 # === Test-suite ===
 if [[ ! -d test-suite/.git ]]; then
-    git clone https://github.com/ManuelJBrito/llvm-test-suite test-suite
+    git clone git@github.com:ManuelJBrito/llvm-test-suite.git test-suite
 fi
 
 SPEC_LINK="test-suite/test-suite-externals/speccpu2017"
@@ -108,7 +108,7 @@ if [[ -r /proc/meminfo ]]; then
 fi
 
 if [[ ! -d llvm-project/.git ]]; then
-    git clone https://github.com/ManuelJBrito/llvm-project.git
+    git clone git@github.com:ManuelJBrito/llvm-project.git
 fi
 
 LLVM_MARKER="$FULL_BUILD_PATH/.llvm-installed"
