@@ -1,0 +1,68 @@
+# variants.yaml
+
+# --- Baseline ---
+- id: NoGVN
+  gvn_base: NoGVN
+  flags: >
+    -mllvm -skip-gvn
+
+
+# --- GVNPRE (simpl=1, pre=0, regalloc varies) ---
+- id: GVNPRE-s1-p0-greedy
+  gvn_base: GVNPRE
+  simpl: 1
+  pre: 0
+  regalloc: greedy
+  flags: >
+    -mllvm -enable-pre=false
+    -mllvm -regalloc=greedy
+
+- id: GVNPRE-s1-p0-fast
+  gvn_base: GVNPRE
+  simpl: 1
+  pre: 0
+  regalloc: fast
+  flags: >
+    -mllvm -enable-pre=false
+    -mllvm -regalloc=fast
+
+- id: GVNPRE-s1-p0-pbqp
+  gvn_base: GVNPRE
+  simpl: 1
+  pre: 0
+  regalloc: pbqp
+  flags: >
+    -mllvm -enable-pre=false
+    -mllvm -regalloc=pbqp
+
+
+# --- NewGVN optimistic (simpl=1, pre=0, regalloc varies) ---
+- id: NewGVN-opt-s1-p0-greedy
+  gvn_base: NewGVN
+  assumption: opt
+  simpl: 1
+  pre: 0
+  regalloc: greedy
+  flags: >
+    -mllvm -enable-newgvn=true
+    -mllvm -regalloc=greedy
+
+- id: NewGVN-opt-s1-p0-fast
+  gvn_base: NewGVN
+  assumption: opt
+  simpl: 1
+  pre: 0
+  regalloc: fast
+  flags: >
+    -mllvm -enable-newgvn=true
+    -mllvm -regalloc=fast
+
+- id: NewGVN-opt-s1-p0-pbqp
+  gvn_base: NewGVN
+  assumption: opt
+  simpl: 1
+  pre: 0
+  regalloc: pbqp
+  flags: >
+    -mllvm -enable-newgvn=true
+    -mllvm -regalloc=pbqp

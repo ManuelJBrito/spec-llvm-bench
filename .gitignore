@@ -1,0 +1,9 @@
+/build*
+/bin
+llvm-project
+test-suite
+/scripts/common.sh
+/toolchain/*
+!/toolchain/compiler-base
+ 
+
