@@ -142,8 +142,15 @@ if [[ ! -x "$CLANG_BIN" ]]; then
     exit 1
 fi
 
-# === Toolchain ===
+# === Toolchain directory ===
 TOOLCHAIN_PATH="$BENCH_INFRA_DIR/toolchain"
+
+# Always recreate toolchain from scratch
+if [[ -d "$TOOLCHAIN_PATH" ]]; then
+    rm -rf "$TOOLCHAIN_PATH"
+fi
+mkdir -p "$TOOLCHAIN_PATH"
+
 CC="${TOOLCHAIN_PATH}/clang"
 CXX="${CC}++"
 LIT="$INSTALL_PREFIX/bin/llvm-lit"
@@ -191,7 +198,7 @@ echo -e "\033[0;32mGenerated:\033[0m scripts/common.sh"
 
 # === Generate Toolchain wrappers [CC/CXX] ===
 
-cp "$TOOLCHAIN_PATH/compiler_base" "$TOOLCHAIN_PATH/compiler"
+cp "$BENCH_INFRA_DIR/scripts/compiler_base" "$TOOLCHAIN_PATH/compiler"
 sed -i "1a source $OUTPUT_SCRIPT" "$TOOLCHAIN_PATH/compiler"
 
 cat > "$CC" <<EOF

@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+# Real clang
+CLANG="${BIN}/bin/clang"
+case "$1" in
+    c)
+        # Use clang (nothing to change)
+        ;;
+    cxx)
+        # Use clang++
+        CLANG="${CLANG}++"
+        ;;
+esac
+shift
+
+DBG_SRCS=()
+DBG_FUNCS=""
+# Extract source file from arguments
+for arg in "$@"; do
+  case "$arg" in
+    *.c|*.cpp|*.cc|*.C)
+      SRC_BASE=$(basename "$arg")
+      ;;
+  esac
+done
+
+# Determine if we should use DBG_FLAGS for this source file
+DBG_MODE=0
+for source in "${DBG_SRCS[@]}"; do
+  if [ "$SRC_BASE" = "$source" ]; then
+    DBG_MODE=1
+    break
+  fi
+done
+
+COMMON_FLAGS="-no-pedantic"
+DBG_FLAGS="-mllvm -print-module-scope -mllvm -print-before=newgvn -mllvm -filter-print-funcs=$DBG_FUNCS -mllvm -ir-dump-directory=$IR_DUMP"
+if [ "$DBG_MODE" = "1" ]; then
+  exec "$CLANG" "$@" $COMMON_FLAGS $DBG_FLAGS 
+else
+  exec "$CLANG" "$@" $COMMON_FLAGS
+fi
