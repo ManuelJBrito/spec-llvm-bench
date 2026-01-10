@@ -15,6 +15,7 @@ Options:
   --jobs <int>           Number of ninja jobs (default: nproc)
   --spec <path>          Full path to SPEC CPU2017 (required)
   --fresh                Wipe and rebuild existing state
+  --common-flags         Common compiler flags
   -h, --help             Show this help message and exit
 
 Example:
@@ -41,6 +42,7 @@ while [[ $# -gt 0 ]]; do
         --jobs) NINJA_JOBS="$2"; shift 2 ;;
         --spec) SPEC_PATH="$2"; shift 2 ;;
         --fresh) FRESH=1; shift ;;
+        --common-flags) COMMON_FLAGS="-O3 $2"; shift 2 ;;
         -h|--help) print_help; exit 0 ;;
         *) print_error "Unknown option: $1"; print_help; exit 1 ;;
     esac
