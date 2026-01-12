@@ -128,7 +128,7 @@ fi
 LINK_JOBS=2
 if [[ -r /proc/meminfo ]]; then
     MEM_GB=$(awk '/MemTotal/ {printf "%d", $2/1024/1024}' /proc/meminfo)
-    LINK_JOBS=$((MEM_GB / 2))
+    LINK_JOBS=$((MEM_GB / 15))
     [[ "$LINK_JOBS" -lt 1 ]] && LINK_JOBS=1
 fi
 
