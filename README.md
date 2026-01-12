@@ -90,6 +90,10 @@ All build and run operations are handled via **`bench.sh`**.
 
 - `--dry-run` : Print commands without executing them.
 
+> **Note:** It is recommended to run benchmarks with `--run-type test` first.  
+> Test runs use reduced workloads, execute a single iteration, and run benchmarks in parallel, making them suitable for fast validation before full `ref` runs.
+
+
 ### Examples
 
 | Goal                  | Command                                                      |
@@ -98,7 +102,8 @@ All build and run operations are handled via **`bench.sh`**.
 | **Build Only**        | `./bench.sh --mode build`                                    |
 | **Run Only**          | `./bench.sh --mode run`                                      |
 | **Specific Variants** | `./bench.sh --mode run --variants GVNPRE-s1-p0-greedy,NoGVN` |
-| **Dry Run / Testing** | `./bench.sh --mode build --run-type test --dry-run`          |
+| **Test Run** | `./bench.sh --run-type test` |
+| **Dry Run** | `./bench.sh --mode build --run-type test --dry-run`          |
 
 
 Results and CSV Generation

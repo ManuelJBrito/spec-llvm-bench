@@ -63,7 +63,12 @@ for build in "${VARIANTS[@]}"; do
         echo "Running $build [$RUN_TYPE]"
         if [ "$DRY_RUN" = false ]; then
             cd builds
-            ../scripts/run_variant.sh "$build"
+            if [ "$RUN_TYPE" = "test" ]; then
+                # num_iter=1, lit_jobs=6
+                ../scripts/run_variant.sh "$build" 1 6
+            else
+                ../scripts/run_variant.sh "$build"
+            fi
             cd ..
         fi
     fi
