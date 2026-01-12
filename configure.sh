@@ -90,10 +90,28 @@ fi
 mkdir -p bin
 INSTALL_PREFIX="$(pwd)/bin"
 
+LLVM_MARKER="$FULL_BUILD_PATH/.llvm-installed"
+update_repo() {
+    local dir="$1"
+    local url="$2"
+    local branch="${3:-}"
+
+    if [[ -d "$dir/.git" ]]; then
+        git -C "$dir" fetch
+        [[ -n "$branch" ]] && git -C "$dir" checkout "$branch"
+        if ! git -C "$dir" diff --quiet HEAD..@{u}; then
+            git -C "$dir" pull --ff-only
+            rm -f "$LLVM_MARKER"
+        fi
+    else
+        git clone "$url" "$dir"
+        [[ -n "$branch" ]] && git -C "$dir" checkout "$branch"
+        rm -f "$LLVM_MARKER"
+    fi
+}
+
 # === Test-suite ===
-if [[ ! -d test-suite/.git ]]; then
-    git clone git@github.com:ManuelJBrito/llvm-test-suite.git test-suite
-fi
+update_repo test-suite git@github.com:ManuelJBrito/llvm-test-suite.git
 
 SPEC_LINK="test-suite/test-suite-externals/speccpu2017"
 if [[ ! -e "$SPEC_LINK" ]]; then
@@ -109,11 +127,8 @@ if [[ -r /proc/meminfo ]]; then
     [[ "$LINK_JOBS" -lt 1 ]] && LINK_JOBS=1
 fi
 
-if [[ ! -d llvm-project/.git ]]; then
-    git clone git@github.com:ManuelJBrito/llvm-project.git
-fi
+update_repo llvm-project git@github.com:ManuelJBrito/llvm-project.git BenchGVN
 
-LLVM_MARKER="$FULL_BUILD_PATH/.llvm-installed"
 CLANG_BIN="$INSTALL_PREFIX/bin/clang"
 IR_DUMP="${BENCH_INFRA_DIR}/llvm-project/build/dump-ir"
 
