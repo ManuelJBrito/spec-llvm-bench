@@ -13,7 +13,7 @@ Usage: ./configure.sh [OPTIONS]
 
 Options:
   --jobs <int>           Number of ninja jobs (default: nproc)
-  --spec <path>          Full path to SPEC CPU2017 (required)
+  --spec <path>          Full path to SPEC CPU2017
   --fresh                Wipe and rebuild existing state
   --common-flags         Common compiler flags
   -h, --help             Show this help message and exit
@@ -49,22 +49,6 @@ while [[ $# -gt 0 ]]; do
 done
 
 NINJA_JOBS="${NINJA_JOBS:-$DEFAULT_JOBS}"
-
-# === Validate SPEC ===
-if [[ -z "$SPEC_PATH" ]]; then
-    print_error "--spec is required"
-    exit 1
-fi
-
-if [[ "$SPEC_PATH" != /* ]]; then
-    print_error "--spec must be an absolute path"
-    exit 1
-fi
-
-if [[ ! -d "$SPEC_PATH" ]]; then
-    print_error "SPEC path does not exist: $SPEC_PATH"
-    exit 1
-fi
 
 # === Paths ===
 BENCH_INFRA_DIR="$ROOT"
@@ -114,8 +98,29 @@ update_repo() {
 update_repo test-suite git@github.com:ManuelJBrito/llvm-test-suite.git
 
 SPEC_LINK="test-suite/test-suite-externals/speccpu2017"
-if [[ ! -e "$SPEC_LINK" ]]; then
-    ln -s "$SPEC_PATH" "$SPEC_LINK"
+if [[ -z "$SPEC_PATH" ]]; then
+    if [[ -L "$SPEC_LINK" ]]; then
+        RESOLVED_SPEC="$(readlink -f "$SPEC_LINK")"
+        if [[ -d "$RESOLVED_SPEC" ]]; then
+            SPEC_PATH="$RESOLVED_SPEC"
+        else
+            print_error "SPEC symlink exists but target is invalid: $SPEC_LINK"
+            exit 1
+        fi
+    else
+        print_error "--spec not provided and SPEC symlink does not exist"
+        exit 1
+    fi
+else
+    if [[ "$SPEC_PATH" != /* ]]; then
+        print_error "--spec must be an absolute path"
+        exit 1
+    fi
+
+    if [[ ! -d "$SPEC_PATH" ]]; then
+        print_error "SPEC path does not exist: $SPEC_PATH"
+        exit 1
+    fi
 fi
 
 # === LLVM ===

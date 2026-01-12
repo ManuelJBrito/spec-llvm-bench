@@ -28,7 +28,7 @@ Clone the repository:
     git clone https://github.com/ManuelJBrito/spec-llvm-bench
     cd spec-llvm-bench
 
-Configure the environment (SPEC path is mandatory):
+Configure the environment:
 
     ./configure.sh --spec /opt/spec/cpu2017
 
