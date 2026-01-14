@@ -121,6 +121,7 @@ else
         print_error "SPEC path does not exist: $SPEC_PATH"
         exit 1
     fi
+    ln -s "$SPEC_PATH" "$SPEC_LINK"
 fi
 
 # === LLVM ===
