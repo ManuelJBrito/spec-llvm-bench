@@ -33,7 +33,7 @@ for source in "${DBG_SRCS[@]}"; do
   fi
 done
 
-COMMON_FLAGS="-no-pedantic"
+COMMON_FLAGS="$COMMON_FLAGS -no-pedantic"
 DBG_FLAGS="-mllvm -print-module-scope -mllvm -print-before=newgvn -mllvm -filter-print-funcs=$DBG_FUNCS -mllvm -ir-dump-directory=$IR_DUMP"
 if [ "$DBG_MODE" = "1" ]; then
   exec "$CLANG" "$@" $COMMON_FLAGS $DBG_FLAGS 
