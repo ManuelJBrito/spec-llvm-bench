@@ -162,6 +162,29 @@ Repository Structure
 
 Files and directories marked with * are generated during configuration or benchmarking.
 
+### Remote Execution
+
+This infrastructure supports **building variants locally and running benchmarks on a remote host**.  
+The remote machine is assumed to have a cloned `spec-llvm-bench` repository and an accessible parent build directory.
+
+Configuration
+-------------
+
+Set the remote host and build directory via `configure.sh`:
+
+```bash
+./configure.sh --remote-host <user>@<hostname> \
+                --remote-build-dir /path/to/remote/spec-llvm-bench/builds
+```  
+
+Building
+--------
+When building a variant locally:
+
+```bash 
+./bench.sh --mode build --variants NoGVN
+```
+The variant is automatically rsynced to the remote host.
 
 TODO
 ----

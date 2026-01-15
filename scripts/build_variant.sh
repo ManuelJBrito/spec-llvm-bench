@@ -84,7 +84,7 @@ fi
 
 CFLAGS="$COMMON_FLAGS $VARIANT_FLAGS"
 
-BUILD_ROOT="$BUILD_ROOT_BASE/$VARIANT"
+BUILD_ROOT="$(pwd)/$BUILD_ROOT_BASE/$VARIANT"
 mkdir -p "$BUILD_ROOT"
 
 # Export debug controls for compiler wrapper
@@ -111,3 +111,18 @@ if [[ "$NO_CLEAN" != "1" ]]; then
 fi
 
 ninja -j"$NINJA_JOBS" "External/SPEC/$SPEC_TARGET" 2>&1 | tee build.log
+# Rsync the variant build to the remote host
+if [[ -n "$TEST_SUITE_REMOTE_HOST" && -n "$TEST_SUITE_REMOTE_BUILD_DIR" ]]; then
+    REMOTE_VARIANT_DIR="$TEST_SUITE_REMOTE_BUILD_DIR/$VARIANT"
+    echo "Syncing variant '$VARIANT' to $TEST_SUITE_REMOTE_HOST:$REMOTE_VARIANT_DIR ..."
+
+    # Ensure parent exists on remote
+    ssh -T -o BatchMode=yes -o ConnectTimeout=5 "$TEST_SUITE_REMOTE_HOST" \
+        "mkdir -p '$TEST_SUITE_REMOTE_BUILD_DIR'" &>/dev/null
+
+    echo "post test"
+    # Rsync the variant build
+    rsync -az --delete -e "ssh -T -o BatchMode=yes -o ConnectTimeout=5" \
+      "$BUILD_ROOT"/ "$TEST_SUITE_REMOTE_HOST":"$REMOTE_VARIANT_DIR"/
+    echo "Done -Syncing variant '$VARIANT' to $TEST_SUITE_REMOTE_HOST:$REMOTE_VARIANT_DIR ..."
+fi

@@ -16,6 +16,8 @@ Options:
   --spec <path>          Full path to SPEC CPU2017
   --fresh                Wipe and rebuild existing state
   --common-flags         Common compiler flags
+  --remote-host <hostname>   Remote host cross-execution
+  --remote-build-dir <path>  Remote directory
   -h, --help             Show this help message and exit
 
 Example:
@@ -35,6 +37,8 @@ RUNS=3
 MACHINE_NAME="$(hostname)"
 BUILD_DIR_NAME="builds"
 SPEC_PATH=""
+TEST_SUITE_REMOTE_HOST=""
+TEST_SUITE_REMOTE_BUILD_DIR=""
 
 # === Parse arguments ===
 while [[ $# -gt 0 ]]; do
@@ -43,6 +47,8 @@ while [[ $# -gt 0 ]]; do
         --spec) SPEC_PATH="$2"; shift 2 ;;
         --fresh) FRESH=1; shift ;;
         --common-flags) COMMON_FLAGS="-O3 $2"; shift 2 ;;
+        --remote-host) TEST_SUITE_REMOTE_HOST="$2"; shift 2 ;;
+        --remote-build-dir) TEST_SUITE_REMOTE_BUILD_DIR="$2"; shift 2 ;;
         -h|--help) print_help; exit 0 ;;
         *) print_error "Unknown option: $1"; print_help; exit 1 ;;
     esac
@@ -178,6 +184,31 @@ CC="${TOOLCHAIN_PATH}/clang"
 CXX="${CC}++"
 LIT="$INSTALL_PREFIX/bin/llvm-lit"
 
+# === Remote build dir === 
+if [[ -n "$TEST_SUITE_REMOTE_BUILD_DIR" ]]; then
+    if [[ "$TEST_SUITE_REMOTE_BUILD_DIR" != /* ]]; then
+        print_error "--remote-build-dir must be an absolute path"
+        exit 1
+    fi
+fi
+
+if [[ -n "$TEST_SUITE_REMOTE_BUILD_DIR" && -z "$TEST_SUITE_REMOTE_HOST" ]]; then
+    print_error "--remote-build-dir requires --remote-host to be set"
+    exit 1
+fi
+
+if [[ -n "$TEST_SUITE_REMOTE_HOST" && -z "$TEST_SUITE_REMOTE_BUILD_DIR" ]]; then
+    echo "Warning: --remote-host set but --remote-build-dir not set, defaulting to mirroring local build dir"
+fi
+
+if [[ -n "$TEST_SUITE_REMOTE_HOST" && -n "$TEST_SUITE_REMOTE_BUILD_DIR" ]]; then
+    echo "Checking remote build directory exists on $TEST_SUITE_REMOTE_HOST..."
+    if ! ssh -o BatchMode=yes -o ConnectTimeout=5 "$TEST_SUITE_REMOTE_HOST" "[ -d '$TEST_SUITE_REMOTE_BUILD_DIR' ]"; then
+        print_error "Remote build parent directory does not exist or is not accessible: $TEST_SUITE_REMOTE_BUILD_DIR"
+        exit 1
+    fi
+fi
+
 
 # === Output file path ===
 OUTPUT_SCRIPT="$BENCH_INFRA_DIR/scripts/common.sh"
@@ -209,6 +240,10 @@ export MACHINE_NAME="$MACHINE_NAME"
 export BASE="$BENCH_INFRA_DIR"
 export BUILD_ROOT_BASE="$BUILD_ROOT_BASE"
 export RESULTS_ROOT_BASE="$RESULTS_ROOT_BASE"
+
+# === Remote execution ===
+export TEST_SUITE_REMOTE_HOST="$TEST_SUITE_REMOTE_HOST"
+export TEST_SUITE_REMOTE_BUILD_DIR="$TEST_SUITE_REMOTE_BUILD_DIR"
 
 # === Compiler and flags ===
 export CC="$CC"
