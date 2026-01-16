@@ -18,6 +18,7 @@ Options:
   --common-flags         Common compiler flags
   --remote-host <hostname>   Remote host cross-execution
   --remote-build-dir <path>  Remote directory
+  --toolchain <path>      CMake toolchain file (for cross-compilation)
   -h, --help             Show this help message and exit
 
 Example:
@@ -39,6 +40,7 @@ BUILD_DIR_NAME="builds"
 SPEC_PATH=""
 TEST_SUITE_REMOTE_HOST=""
 TEST_SUITE_REMOTE_BUILD_DIR=""
+TOOLCHAIN_FILE=""
 
 # === Parse arguments ===
 while [[ $# -gt 0 ]]; do
@@ -49,6 +51,7 @@ while [[ $# -gt 0 ]]; do
         --common-flags) COMMON_FLAGS="-O3 $2"; shift 2 ;;
         --remote-host) TEST_SUITE_REMOTE_HOST="$2"; shift 2 ;;
         --remote-build-dir) TEST_SUITE_REMOTE_BUILD_DIR="$2"; shift 2 ;;
+        --toolchain) TOOLCHAIN_FILE="$2"; shift 2 ;;
         -h|--help) print_help; exit 0 ;;
         *) print_error "Unknown option: $1"; print_help; exit 1 ;;
     esac
@@ -209,6 +212,17 @@ if [[ -n "$TEST_SUITE_REMOTE_HOST" && -n "$TEST_SUITE_REMOTE_BUILD_DIR" ]]; then
     fi
 fi
 
+if [[ -n "$TOOLCHAIN_FILE" ]]; then
+    if [[ "$TOOLCHAIN_FILE" != /* ]]; then
+        print_error "--toolchain must be an absolute path"
+        exit 1
+    fi
+    if [[ ! -f "$TOOLCHAIN_FILE" ]]; then
+        print_error "Toolchain file not found: $TOOLCHAIN_FILE"
+        exit 1
+    fi
+fi
+
 
 # === Output file path ===
 OUTPUT_SCRIPT="$BENCH_INFRA_DIR/scripts/common.sh"
@@ -244,6 +258,9 @@ export RESULTS_ROOT_BASE="$RESULTS_ROOT_BASE"
 # === Remote execution ===
 export TEST_SUITE_REMOTE_HOST="$TEST_SUITE_REMOTE_HOST"
 export TEST_SUITE_REMOTE_BUILD_DIR="$TEST_SUITE_REMOTE_BUILD_DIR"
+
+# === Toolchain ===
+export CMAKE_TOOLCHAIN_FILE="$TOOLCHAIN_FILE"
 
 # === Compiler and flags ===
 export CC="$CC"
