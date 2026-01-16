@@ -1,11 +1,26 @@
 # variants.yaml
 
 # --- Baseline ---
-- id: NoGVN
+- id: NoGVN-greedy
   gvn_base: NoGVN
+  regalloc: greedy
   flags: >
     -mllvm -skip-gvn
+    -mllvm -regalloc=greedy
 
+- id: NoGVN-fast
+  gvn_base: NoGVN
+  regalloc: fast
+  flags: >
+    -mllvm -skip-gvn
+    -mllvm -regalloc=fast
+
+- id: NoGVN-pbqp
+  gvn_base: NoGVN
+  regalloc: pbqp
+  flags: >
+    -mllvm -skip-gvn
+    -mllvm -regalloc=pbqp
 
 # --- GVNPRE (simpl=1, pre=0, regalloc varies) ---
 - id: GVNPRE-s1-p0-greedy
