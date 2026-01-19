@@ -41,6 +41,7 @@ SPEC_PATH=""
 TEST_SUITE_REMOTE_HOST=""
 TEST_SUITE_REMOTE_BUILD_DIR=""
 TOOLCHAIN_FILE=""
+SKIP_LLVM=0
 
 # === Parse arguments ===
 while [[ $# -gt 0 ]]; do
@@ -52,6 +53,7 @@ while [[ $# -gt 0 ]]; do
         --remote-host) TEST_SUITE_REMOTE_HOST="$2"; shift 2 ;;
         --remote-build-dir) TEST_SUITE_REMOTE_BUILD_DIR="$2"; shift 2 ;;
         --toolchain) TOOLCHAIN_FILE="$2"; shift 2 ;;
+        --skip-llvm) SKIP_LLVM=1; shift ;;
         -h|--help) print_help; exit 0 ;;
         *) print_error "Unknown option: $1"; print_help; exit 1 ;;
     esac
@@ -147,7 +149,7 @@ update_repo llvm-project git@github.com:ManuelJBrito/llvm-project.git BenchGVN
 CLANG_BIN="$INSTALL_PREFIX/bin/clang"
 IR_DUMP="${BENCH_INFRA_DIR}/llvm-project/build/dump-ir"
 
-if [[ "$FRESH" -eq 1 || ! -f "$LLVM_MARKER" ]]; then
+if [[ "$SKIP_LLVM" -eq 0 && ("$FRESH" -eq 1 || ! -f "$LLVM_MARKER") ]]; then
     cd llvm-project
     git checkout BenchGVN
     cmake -S llvm -B build -GNinja \
@@ -169,7 +171,7 @@ else
 fi
 
 # === Validate LLVM install ===
-if [[ ! -x "$CLANG_BIN" ]]; then
+if [[ ! -x "$CLANG_BIN" && "$SKIP_LLVM" -eq 0 ]]; then
     print_error "clang not found after install: $CLANG_BIN"
     exit 1
 fi
