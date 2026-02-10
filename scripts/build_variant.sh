@@ -118,7 +118,7 @@ cmake "${CMAKE_ARGS[@]}"
 cd "$BUILD_ROOT"
 
 if [[ "$NO_CLEAN" != "1" ]]; then
-  ninja clean
+  ninja -t clean "External/SPEC/$SPEC_TARGET"
 fi
 
 ninja -j"$NINJA_JOBS" "External/SPEC/$SPEC_TARGET" 2>&1 | tee build.log
