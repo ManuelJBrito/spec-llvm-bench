@@ -127,6 +127,19 @@ Generated output:
 `(benchmark, machine, gvn_base, simpl, pre, assumption, regalloc, metric, value, run_id, passed)`
 
 
+Analysis
+--------
+
+    ./scripts/analyze_results.py results/
+
+Reads per-machine CSVs, computes speedup of each variant vs the `NoGVN` baseline, and generates per-metric/per-regalloc markdown reports under `results/<metric>/<regalloc>/<machine>-analysis.md`.
+
+Each report contains:
+- **Winners** (>+3% speedup)
+- **Losers** (<-3% regression)
+- **Variant swings** (>3% difference among variants for the same benchmark)
+
+
 Repository Structure
 --------------------
 
@@ -145,6 +158,7 @@ Repository Structure
     │   ├── machine2.csv
     │   └── machine3.csv *
     ├── scripts/
+    │   ├── analyze_results.py
     │   ├── build_variant.sh
     │   ├── run_variant.sh
     │   ├── results_to_csv.py
@@ -191,9 +205,4 @@ TODO
 
 - Noise reduction
   - Script for CPU pinning, turbo control, NUMA policy
-
-- Results aggregation
-  - Merge CSVs across machines
-  - Compute summaries (e.g. geomeans, speedups)
-  - Introduce per-machine subdirectories with raw output, CSV, and metadata
 
