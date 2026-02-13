@@ -1,0 +1,2 @@
+bench,function,src,pct,total_sample,max_sample,entry_sample
+625.x264_s,computeSSIM,ImageValidator.c,100.00,142530,320,320

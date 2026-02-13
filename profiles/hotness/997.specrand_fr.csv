@@ -1,0 +1,2 @@
+bench,function,src,pct,total_sample,max_sample,entry_sample
+997.specrand_fr,spec_genrand_int32,specrand.c,100.00,10581,60,60

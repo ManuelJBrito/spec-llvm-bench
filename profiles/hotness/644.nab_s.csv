@@ -1,0 +1,5 @@
+bench,function,src,pct,total_sample,max_sample,entry_sample
+644.nab_s,mme34,,85.43,11656886,10426,3
+644.nab_s,nblist,,13.32,1817726,12006,23
+644.nab_s,heapsort_index,,0.80,108706,864,17
+644.nab_s,md,,0.44,60049,453,1

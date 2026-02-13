@@ -1,0 +1,13 @@
+bench,function,src,pct,total_sample,max_sample,entry_sample
+657.xz_s,sha_compress,,27.16,2649756,8285,359
+657.xz_s,lzma_decode,,25.19,2457231,2314,2277
+657.xz_s,lzma_lzma_optimum_normal,,16.33,1592536,2412,475
+657.xz_s,process,,9.97,972442,354,22
+657.xz_s,lzma_mf_bt4_find,,7.97,777498,9877,1
+657.xz_s,rc_encode,,7.13,695468,6189,600
+657.xz_s,lzma_mf_bt4_skip,,3.46,337961,7430,26
+657.xz_s,lzma_lzma_encode,,2.36,230357,638,586
+657.xz_s,match,,0.16,15561,49,17
+657.xz_s,length_update_prices,,0.12,12000,195,5
+657.xz_s,length,,0.08,7994,32,62
+657.xz_s,sha_process,,0.02,1742,63,1

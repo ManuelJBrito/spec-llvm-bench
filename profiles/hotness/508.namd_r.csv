@@ -1,0 +1,13 @@
+bench,function,src,pct,total_sample,max_sample,entry_sample
+508.namd_r,calc_pair_energy_fullelect,,25.29,91926818,87378,87371
+508.namd_r,calc_pair_energy,,19.60,71245659,66416,66416
+508.namd_r,calc_pair_fullelect,,10.10,36707417,59599,59598
+508.namd_r,calc_self_energy_fullelect,,9.32,33896689,47906,47906
+508.namd_r,calc_pair_energy_merge_fullelect,,7.90,28716400,50618,909
+508.namd_r,calc_self_energy,,6.83,24841926,33898,25662
+508.namd_r,calc_pair,,4.52,16435972,39441,39440
+508.namd_r,calc_pair_merge_fullelect,,4.32,15716005,38436,785
+508.namd_r,calc_self_energy_merge_fullelect,,4.09,14881431,32144,190
+508.namd_r,calc_self_fullelect,,3.68,13375445,29592,206
+508.namd_r,calc_self_merge_fullelect,,2.14,7763883,22404,172
+508.namd_r,calc_self,,2.10,7650176,22300,172

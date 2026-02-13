@@ -1,0 +1,5 @@
+bench,function,src,pct,total_sample,max_sample,entry_sample
+605.mcf_s,spec_qsort,spec_qsort.c,51.88,54145770,180212,107744
+605.mcf_s,primal_bea_mpp,pbeampp.c,33.16,34611425,501589,104709
+605.mcf_s,price_out_impl,implicit.c,14.45,15080432,119430,95597
+605.mcf_s,suspend_impl,implicit.c,0.47,491433,3018,3018

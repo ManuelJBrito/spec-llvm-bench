@@ -1,0 +1,2 @@
+bench,function,src,pct,total_sample,max_sample,entry_sample
+638.imagick_s,computeSSIM,ImageValidator.c,100.00,46123,106,98
