@@ -1,0 +1,46 @@
+# exec_time Analysis (greedy regalloc): ns3978931
+**Threshold:** ±3.0% change vs NoGVN baseline
+
+## Winners (> +3%)
+* **500.perlbench_r**: 6.69% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **500.perlbench_r**: 5.31% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **502.gcc_r**: 3.64% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **502.gcc_r**: 3.48% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **508.namd_r**: 11.64% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **508.namd_r**: 11.37% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **510.parest_r**: 25.43% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **510.parest_r**: 24.58% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **511.povray_r**: 13.99% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **511.povray_r**: 13.70% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **519.lbm_r**: 19.24% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **519.lbm_r**: 17.80% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **525.x264_r**: 3.03% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **526.blender_r**: 10.66% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **526.blender_r**: 10.30% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **531.deepsjeng_r**: 4.88% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **538.imagick_r**: 30.66% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **538.imagick_r**: 28.12% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **544.nab_r**: 6.44% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **544.nab_r**: 4.90% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **557.xz_r**: 5.00% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **557.xz_r**: 4.92% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **600.perlbench_s**: 6.85% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **600.perlbench_s**: 6.60% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **602.gcc_s**: 4.35% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **602.gcc_s**: 3.96% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **619.lbm_s**: 11.46% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **619.lbm_s**: 10.56% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **620.omnetpp_s**: 4.68% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **657.xz_s**: 3.34% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **657.xz_s**: 3.31% (Variant: GVNPRE-simpl_1-pre_0-[])
+
+## Losers (< -3%)
+_No significant losers._
+
+## Variant Swings (> 3% difference among variants)
+* **523.xalancbmk_r**: 3.46% total swing
+  - Best: 2.45% (GVNPRE-simpl_1-pre_0-[])
+  - Worst: -1.01% (NewGVN-simpl_1-pre_0-[opt])
+* **623.xalancbmk_s**: 3.10% total swing
+  - Best: 1.30% (GVNPRE-simpl_1-pre_0-[])
+  - Worst: -1.81% (NewGVN-simpl_1-pre_0-[opt])
