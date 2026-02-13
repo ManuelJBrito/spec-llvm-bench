@@ -1,5 +1,11 @@
 # variants.yaml
 
+# --- Profile build ---
+- id: prof
+  flags: >
+    -mllvm -skip-gvn
+    -gmlt -fno-omit-frame-pointer
+
 # --- Baseline ---
 - id: NoGVN-greedy
   gvn_base: NoGVN

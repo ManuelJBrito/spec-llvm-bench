@@ -38,6 +38,7 @@ NO_CLEAN=0
 DBG_SRCS=""
 DBG_FUNCS=""
 DBG_MODE=""
+RUN_UNDER=""
 
 case "${1:-}" in
   -h|--help)
@@ -60,6 +61,9 @@ for arg in "$@"; do
       ;;
     dbg_mode=*)
       DBG_MODE="${arg#*=}"
+      ;;
+    run_under=*)
+      RUN_UNDER="${arg#*=}"
       ;;
     *)
       echo "Unknown argument: $arg" >&2
@@ -105,6 +109,11 @@ CMAKE_ARGS=(
   -DTEST_SUITE_RUN_TYPE="$RUN_TYPE"
   -DTEST_SUITE_COLLECT_STATS=ON
 )
+
+# Optional run-under wrapper (e.g. perf record)
+if [[ -n "$RUN_UNDER" ]]; then
+  CMAKE_ARGS+=(-DTEST_SUITE_RUN_UNDER="$RUN_UNDER")
+fi
 
 # Optional cross-compilation toolchain
 if [[ -n "$CMAKE_TOOLCHAIN_FILE" ]]; then

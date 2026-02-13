@@ -3,4 +3,5 @@
 llvm-project
 test-suite
 /scripts/common.sh
-/toolchain 
+/toolchain
+/profiles/raw/
