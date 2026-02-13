@@ -140,6 +140,23 @@ Each report contains:
 - **Variant swings** (>3% difference among variants for the same benchmark)
 
 
+Profiling
+-------------------
+
+    ./scripts/profile.sh [ref|test] [spec_target] [--start-phase N]
+
+Builds with the `prof` variant, runs benchmarks under `perf record` (LBR), converts to LLVM sampling profiles via `llvm-profgen`, and merges with `llvm-profdata`.
+
+Phases:
+1. Build + run with perf via lit
+2. `perf script` + `llvm-profgen` per benchmark
+3. Global merge + per-benchmark hotness CSVs
+
+Output:
+- `profiles/raw/` — perf data, profraw, profdata 
+- `profiles/hotness/` — per-benchmark hot function CSVs
+
+
 Repository Structure
 --------------------
 
