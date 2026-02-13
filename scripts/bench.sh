@@ -46,7 +46,7 @@ done
 if [ -n "$VARIANTS_ARG" ]; then
     IFS=',' read -r -a VARIANTS <<< "$VARIANTS_ARG"
 else
-    mapfile -t VARIANTS < <(yq -r '.[].id' variants.yaml)
+    mapfile -t VARIANTS < <(yq -r '.[] | select(.id != "prof") | .id' variants.yaml)
 fi
 
 # Loop through variants
