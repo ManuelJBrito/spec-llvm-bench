@@ -31,7 +31,9 @@ for f in files:
     baselines = df[df['gvn_base'] == 'NoGVN'].groupby(['benchmark', 'metric'])['value'].mean().reset_index()
     baselines = baselines.rename(columns={'value': 'NoGVN_raw'})
     targets = df[df['gvn_base'] != 'NoGVN'].copy()
-    targets = targets.groupby(['benchmark', 'gvn_base', 'simpl', 'pre', 'assumption', 'regalloc', 'metric'], dropna=False)['value'].mean().reset_index()
+    targets = targets.groupby(['benchmark', 'gvn_base', 'simpl', 'pre', 'assumption', 'regalloc', 'metric'], dropna=False)['value'].agg(['mean', 'std', 'count']).reset_index()
+    targets = targets.rename(columns={'mean': 'value', 'std': 'value_std', 'count': 'value_n'})
+    targets['pct_dev'] = (targets['value_std'].fillna(0) / targets['value'] * 100)
     targets['variant'] = targets.apply(build_variant, axis=1)
     
     final_df = targets.merge(baselines, on=['benchmark', 'metric'], how='left')
@@ -54,16 +56,16 @@ for f in files:
             winners = group[group['speedup_pct'] > 3.0].sort_values(['benchmark', 'speedup_pct'], ascending=[True, False])
             if not winners.empty:
                 for _, row in winners.iterrows():
-                    md.write(f"* **{row['benchmark']}**: {row['speedup_pct']:.2f}% (Variant: {row['variant']})\n")
+                    md.write(f"* **{row['benchmark']}** (\u00b1{row['pct_dev']:.2f}%): {row['speedup_pct']:.2f}% (Variant: {row['variant']})\n")
             else:
                 md.write("_No significant winners._\n")
-            
+
             # Losers: < -3%
             md.write("\n## Losers (< -3%)\n")
             losers = group[group['speedup_pct'] < -3.0].sort_values(['benchmark', 'speedup_pct'], ascending=[True, True])
             if not losers.empty:
                 for _, row in losers.iterrows():
-                    md.write(f"* **{row['benchmark']}**: {row['speedup_pct']:.2f}% (Variant: {row['variant']})\n")
+                    md.write(f"* **{row['benchmark']}** (\u00b1{row['pct_dev']:.2f}%): {row['speedup_pct']:.2f}% (Variant: {row['variant']})\n")
             else:
                 md.write("_No significant losers._\n")
 
@@ -78,8 +80,8 @@ for f in files:
                         best = b_group.loc[b_group['speedup_pct'].idxmax()]
                         worst = b_group.loc[b_group['speedup_pct'].idxmin()]
                         md.write(f"* **{bench}**: {diff:.2f}% total swing\n")
-                        md.write(f"  - Best: {best['speedup_pct']:.2f}% ({best['variant']})\n")
-                        md.write(f"  - Worst: {worst['speedup_pct']:.2f}% ({worst['variant']})\n")
+                        md.write(f"  - Best (\u00b1{best['pct_dev']:.2f}%): {best['speedup_pct']:.2f}% ({best['variant']})\n")
+                        md.write(f"  - Worst (\u00b1{worst['pct_dev']:.2f}%): {worst['speedup_pct']:.2f}% ({worst['variant']})\n")
             
             if not impact_found:
                 md.write("_No significant performance difference between variants for this allocator._\n")

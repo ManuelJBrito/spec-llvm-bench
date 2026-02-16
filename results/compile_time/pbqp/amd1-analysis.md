@@ -1,0 +1,43 @@
+# compile_time Analysis (pbqp regalloc): amd1
+**Threshold:** ±3.0% change vs NoGVN baseline
+
+## Winners (> +3%)
+_No significant winners._
+
+## Losers (< -3%)
+* **500.perlbench_r** (±0.00%): -5.68% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **500.perlbench_r** (±0.00%): -4.13% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **502.gcc_r** (±0.00%): -4.87% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **502.gcc_r** (±0.00%): -3.85% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **505.mcf_r** (±0.00%): -3.46% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **505.mcf_r** (±0.00%): -3.40% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **508.namd_r** (±0.00%): -7.51% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **508.namd_r** (±0.00%): -5.09% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **510.parest_r** (±0.00%): -3.03% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **525.x264_r** (±0.00%): -5.70% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **525.x264_r** (±0.00%): -5.07% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **526.blender_r** (±0.00%): -4.83% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **526.blender_r** (±0.00%): -4.24% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **531.deepsjeng_r** (±0.00%): -3.87% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **531.deepsjeng_r** (±0.00%): -3.50% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **538.imagick_r** (±0.00%): -5.59% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **538.imagick_r** (±0.00%): -4.83% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **541.leela_r** (±0.00%): -3.45% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **544.nab_r** (±0.00%): -6.12% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **544.nab_r** (±0.00%): -5.02% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **557.xz_r** (±0.00%): -3.16% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **600.perlbench_s** (±0.00%): -5.44% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **600.perlbench_s** (±0.00%): -4.44% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **602.gcc_s** (±0.00%): -5.50% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **602.gcc_s** (±0.00%): -4.06% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **605.mcf_s** (±0.00%): -3.99% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **605.mcf_s** (±0.00%): -3.81% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **619.lbm_s** (±0.00%): -5.87% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **619.lbm_s** (±0.00%): -5.87% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **625.x264_s** (±0.00%): -6.12% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **625.x264_s** (±0.00%): -6.10% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **631.deepsjeng_s** (±0.00%): -4.73% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **631.deepsjeng_s** (±0.00%): -3.47% (Variant: NewGVN-simpl_1-pre_0-[opt])
+
+## Variant Swings (> 3% difference among variants)
+_No significant performance difference between variants for this allocator._
