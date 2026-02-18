@@ -134,13 +134,15 @@ EXIT_CODE=0
 # 1. Pull latest on remote
 log "Pulling on ${HOST}:${REMOTE_DIR} ..."
 # shellcheck disable=SC2029
-ssh "$HOST" "cd ${REMOTE_DIR} && git pull --ff-only" 2>&1 | tee -a "$LOG_FILE"
+ssh "$HOST" "cd ${REMOTE_DIR} && git pull --ff-only" 2>&1 | tee -a "$LOG_FILE" || EXIT_CODE=$?
 
-# 2. Run the script
-log "Running ${SCRIPT} ${ARGS[*]:-} ..."
-# shellcheck disable=SC2029
-ssh "$HOST" "cd ${REMOTE_DIR} && bash ${SCRIPT} $(printf '%q ' "${ARGS[@]}")" \
-    2>&1 | tee -a "$LOG_FILE" || EXIT_CODE=$?
+# 2. Run the script (only if pull succeeded)
+if [ "$EXIT_CODE" -eq 0 ]; then
+    log "Running ${SCRIPT} ${ARGS[*]:-} ..."
+    # shellcheck disable=SC2029
+    ssh "$HOST" "cd ${REMOTE_DIR} && bash ${SCRIPT} $(printf '%q ' "${ARGS[@]}")" \
+        2>&1 | tee -a "$LOG_FILE" || EXIT_CODE=$?
+fi
 
 # 3. Rsync results back (opt-in)
 if [ "${RSYNC:-0}" = "1" ]; then
@@ -148,7 +150,7 @@ if [ "${RSYNC:-0}" = "1" ]; then
     mkdir -p "${BASE}/results/remote/${HOST}"
     rsync -az \
         "${HOST}:${REMOTE_DIR}/results/" \
-        "${BASE}/results/remote/${HOST}/" 2>&1 | tee -a "$LOG_FILE"
+        "${BASE}/results/remote/${HOST}/" 2>&1 | tee -a "$LOG_FILE" || EXIT_CODE=$?
 fi
 
 # 4. Update state
@@ -164,7 +166,14 @@ state_set_done "$STATUS"
 
 # 5. Notify
 if [ "${NOTIFY:-0}" = "1" ]; then
-    "$SCRIPT_DIR/notify.sh" "[$HOST] $SCRIPT_NAME ${ARGS[*]:-} — $STATUS ($GIT_SHORT)"
+    if [ "$STATUS" = "failed" ]; then
+        _tmp="$(mktemp)"
+        tail -30 "$LOG_FILE" > "$_tmp"
+        "$SCRIPT_DIR/notify.sh" -f "$_tmp" "[$HOST] $SCRIPT_NAME ${ARGS[*]:-} — $STATUS ($GIT_SHORT)"
+        rm -f "$_tmp"
+    else
+        "$SCRIPT_DIR/notify.sh" "[$HOST] $SCRIPT_NAME ${ARGS[*]:-} — $STATUS ($GIT_SHORT)"
+    fi
 fi
 
 exit "$EXIT_CODE"
