@@ -5,3 +5,4 @@ test-suite
 /scripts/common.sh
 /toolchain
 /profiles/raw/
+/.planning/
