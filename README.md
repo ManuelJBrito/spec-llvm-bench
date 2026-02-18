@@ -140,6 +140,20 @@ Each report contains:
 - **Variant swings** (>3% difference among variants for the same benchmark)
 
 
+GVN Pass Statistics
+-------------------
+
+    ./scripts/collect_gvn_stats.sh
+
+Extracts GVN/NewGVN pass statistics from the test-suite JSON results (collected via `TEST_SUITE_COLLECT_STATS=ON`).
+
+Output:
+
+    results/<machine>-stats.csv
+
+CSV schema: `(benchmark, machine, gvn_base, simpl, pre, assumption, regalloc, stat_name, stat_value, run_id)`
+
+
 Profiling
 -------------------
 
@@ -180,6 +194,8 @@ Repository Structure
     │   ├── run_variant.sh
     │   ├── results_to_csv.py
     │   ├── results_to_csv.sh
+    │   ├── collect_gvn_stats.py
+    │   ├── collect_gvn_stats.sh
     │   └── common.sh *
     ├── test-suite/ *             # LLVM test-suite + SPEC integration
     ├── toolchain/
