@@ -43,6 +43,10 @@ SCRIPT="$2"
 shift 2
 ARGS=("$@")
 
+REMOTES_CONF="${BASE}/conf/remotes.conf"
+if [ -z "${REMOTE_DIR:-}" ] && [ -f "$REMOTES_CONF" ]; then
+    REMOTE_DIR="$(awk -v host="$HOST" '$1 == host { print $2; exit }' "$REMOTES_CONF")"
+fi
 REMOTE_DIR="${REMOTE_DIR:-~/spec-llvm-bench}"
 SCRIPT_NAME="$(basename "$SCRIPT")"
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
