@@ -252,29 +252,54 @@ Repository Structure
 
 Files and directories marked with * are generated during configuration or benchmarking.
 
-### Remote Execution
+Remote Orchestration
+--------------------
 
-This infrastructure supports **building variants locally and running benchmarks on a remote host**.  
-The remote machine is assumed to have a cloned `spec-llvm-bench` repository and an accessible parent build directory.
+Run any repo script on a remote host and sync results back:
 
-Configuration
--------------
+    ./scripts/remote_run.sh <host> <script> [args...]
 
-Set the remote host and build directory via `configure.sh`:
+The remote must have the repo cloned and `configure.sh` already run.
+The local branch must be pushed — uncommitted/unpushed changes are not present on the remote.
 
-```bash
-./configure.sh --remote-host <user>@<hostname> \
-                --remote-build-dir /path/to/remote/spec-llvm-bench/builds
-```  
+**Workflow**:
+1. Verifies no unpushed local commits (errors out if any exist)
+2. SSHes to `<host>`, runs `git pull --ff-only`
+3. Runs `<script> [args...]` in the remote repo root
+4. Rsyncs `results/` back to `results/remote/<host>/`
+5. Logs everything to `results/logs/<host>/<timestamp>-<script>.log`
+6. Updates `results/logs/<host>/state.json` with run status and git SHA
 
-Building
---------
-When building a variant locally:
+### Examples
 
-```bash 
-./bench.sh --mode build --variants NoGVN
-```
-The variant is automatically rsynced to the remote host.
+| Goal | Command |
+|------|---------|
+| Full bench run on remote | `./scripts/remote_run.sh myhost scripts/bench.sh` |
+| Collect stats on remote | `./scripts/remote_run.sh myhost scripts/collect_gvn_stats.sh` |
+| Run with notification | `NOTIFY=1 NOTIFY_WEBHOOK=<url> ./scripts/remote_run.sh myhost scripts/bench.sh` |
+
+### Remote Status
+
+    ./scripts/remote_status.sh [host]
+
+Shows a table of all runs (running / done / failed) across all hosts, or filtered to one host.
+
+### Notifications
+
+`notify.sh` is called automatically when `NOTIFY=1`. Uses [ntfy.sh](https://ntfy.sh) — pick a topic name, subscribe on your phone, done.
+
+| Variable | Effect |
+|----------|--------|
+| `NOTIFY_TOPIC` | ntfy topic name (e.g. `spec-bench-manuel`) |
+| `NOTIFY_SERVER` | ntfy server URL (default: `https://ntfy.sh`) |
+
+### Remote Setup
+
+The remote machine needs:
+- The repo cloned: `git clone https://github.com/ManuelJBrito/spec-llvm-bench`
+- `configure.sh` run to generate `scripts/common.sh` and toolchain symlinks
+- SSH key access from the local machine
+- `REMOTE_DIR` env var if the remote repo is not at `~/spec-llvm-bench`
 
 TODO
 ----
