@@ -174,6 +174,25 @@ Output:
 CSV schema: `(benchmark, machine, gvn_base, simpl, pre, assumption, regalloc, stat_name, stat_value, run_id)`
 
 
+Work Log
+--------
+
+Track what has been built and run on each machine:
+
+    ./scripts/worklog.sh scan            # auto-discover state from filesystem
+    ./scripts/worklog.sh status          # show current state
+    ./scripts/worklog.sh list-pending    # show remaining work
+
+Manually update entries:
+
+    ./scripts/worklog.sh mark <host> built <variant>
+    ./scripts/worklog.sh mark <host> run <variant>
+    ./scripts/worklog.sh mark <host> csv_generated true
+    ./scripts/worklog.sh mark <host> perf_bisect <benchmark> done
+
+Data is stored in `results/worklog.json`. Host defaults to the local machine when omitted.
+
+
 Profiling
 -------------------
 
@@ -218,6 +237,8 @@ Repository Structure
     │   ├── collect_gvn_stats.sh
     │   ├── _collect_pass_times.py
     │   ├── collect_pass_times.sh
+    │   ├── _worklog.py
+    │   ├── worklog.sh
     │   └── common.sh *
     ├── test-suite/ *             # LLVM test-suite + SPEC integration
     ├── toolchain/
