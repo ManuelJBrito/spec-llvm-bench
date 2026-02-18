@@ -60,3 +60,7 @@ _No significant winners._
 * **605.mcf_s**: 4.11% total swing
   - Best (±0.00%): -53.30% (NewGVN-simpl_1-pre_0-[opt])
   - Worst (±0.00%): -57.41% (GVNPRE-simpl_1-pre_0-[])
+
+## Average Speedups
+* **GVNPRE-simpl_1-pre_0-[]**: -40.02%
+* **NewGVN-simpl_1-pre_0-[opt]**: -38.95%

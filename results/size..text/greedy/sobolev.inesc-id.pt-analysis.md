@@ -52,3 +52,7 @@ _No significant losers._
 
 ## Variant Swings (> 3% difference among variants)
 _No significant performance difference between variants for this allocator._
+
+## Average Speedups
+* **GVNPRE-simpl_1-pre_0-[]**: 7.62%
+* **NewGVN-simpl_1-pre_0-[opt]**: 7.89%

@@ -75,3 +75,7 @@ _No significant winners._
 * **657.xz_s**: 9.92% total swing
   - Best (±0.00%): -35.94% (NewGVN-simpl_1-pre_0-[opt])
   - Worst (±0.00%): -45.86% (GVNPRE-simpl_1-pre_0-[])
+
+## Average Speedups
+* **GVNPRE-simpl_1-pre_0-[]**: -59.38%
+* **NewGVN-simpl_1-pre_0-[opt]**: -58.91%

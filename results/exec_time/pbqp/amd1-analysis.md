@@ -28,3 +28,7 @@
 * **631.deepsjeng_s**: 3.11% total swing
   - Best (±0.04%): 3.98% (GVNPRE-simpl_1-pre_0-[])
   - Worst (±0.23%): 0.87% (NewGVN-simpl_1-pre_0-[opt])
+
+## Average Speedups
+* **GVNPRE-simpl_1-pre_0-[]**: -0.12%
+* **NewGVN-simpl_1-pre_0-[opt]**: -0.60%

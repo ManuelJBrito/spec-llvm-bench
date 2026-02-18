@@ -23,3 +23,7 @@ _No significant losers._
 * **619.lbm_s**: 3.60% total swing
   - Best (±0.00%): 2.49% (NewGVN-simpl_1-pre_0-[opt])
   - Worst (±0.00%): -1.11% (GVNPRE-simpl_1-pre_0-[])
+
+## Average Speedups
+* **GVNPRE-simpl_1-pre_0-[]**: 1.57%
+* **NewGVN-simpl_1-pre_0-[opt]**: 1.26%

@@ -55,3 +55,7 @@
 * **605.mcf_s**: 3.91% total swing
   - Best (±0.00%): 0.75% (NewGVN-simpl_1-pre_0-[opt])
   - Worst (±0.00%): -3.16% (GVNPRE-simpl_1-pre_0-[])
+
+## Average Speedups
+* **GVNPRE-simpl_1-pre_0-[]**: -4.32%
+* **NewGVN-simpl_1-pre_0-[opt]**: -4.60%

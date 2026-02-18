@@ -58,3 +58,7 @@ _No significant losers._
 * **625.x264_s**: 3.75% total swing
   - Best (±0.01%): 8.66% (GVNPRE-simpl_1-pre_0-[])
   - Worst (±0.02%): 4.91% (NewGVN-simpl_1-pre_0-[opt])
+
+## Average Speedups
+* **GVNPRE-simpl_1-pre_0-[]**: 6.70%
+* **NewGVN-simpl_1-pre_0-[opt]**: 6.47%

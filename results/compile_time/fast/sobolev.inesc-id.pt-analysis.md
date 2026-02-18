@@ -12,3 +12,7 @@
 * **508.namd_r**: 4.71% total swing
   - Best (±0.00%): 3.51% (NewGVN-simpl_1-pre_0-[opt])
   - Worst (±0.00%): -1.20% (GVNPRE-simpl_1-pre_0-[])
+
+## Average Speedups
+* **GVNPRE-simpl_1-pre_0-[]**: -1.19%
+* **NewGVN-simpl_1-pre_0-[opt]**: -0.76%

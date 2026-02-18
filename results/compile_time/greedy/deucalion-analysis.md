@@ -27,3 +27,7 @@
 * **641.leela_s**: 3.18% total swing
   - Best (±0.00%): 0.89% (NewGVN-simpl_1-pre_0-[opt])
   - Worst (±0.00%): -2.29% (GVNPRE-simpl_1-pre_0-[])
+
+## Average Speedups
+* **GVNPRE-simpl_1-pre_0-[]**: -1.83%
+* **NewGVN-simpl_1-pre_0-[opt]**: -1.98%

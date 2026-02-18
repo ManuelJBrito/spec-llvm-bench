@@ -85,3 +85,9 @@ for f in files:
             
             if not impact_found:
                 md.write("_No significant performance difference between variants for this allocator._\n")
+
+            # Average Speedups per variant
+            md.write("\n## Average Speedups\n")
+            for variant, v_group in group.groupby('variant'):
+                avg = v_group['speedup_pct'].mean()
+                md.write(f"* **{variant}**: {avg:.2f}%\n")

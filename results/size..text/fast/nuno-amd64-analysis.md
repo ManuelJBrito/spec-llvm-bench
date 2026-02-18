@@ -1,4 +1,4 @@
-# size..text Analysis (fast regalloc): amd1
+# size..text Analysis (fast regalloc): nuno-amd64
 **Threshold:** ±3.0% change vs NoGVN baseline
 
 ## Winners (> +3%)
@@ -13,22 +13,22 @@ _No significant winners._
 * **505.mcf_r** (±0.00%): -53.30% (Variant: NewGVN-simpl_1-pre_0-[opt])
 * **508.namd_r** (±0.00%): -38.74% (Variant: GVNPRE-simpl_1-pre_0-[])
 * **508.namd_r** (±0.00%): -33.83% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **510.parest_r** (±0.00%): -44.89% (Variant: GVNPRE-simpl_1-pre_0-[])
-* **510.parest_r** (±0.00%): -43.48% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **510.parest_r** (±0.00%): -44.93% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **510.parest_r** (±0.00%): -43.52% (Variant: NewGVN-simpl_1-pre_0-[opt])
 * **511.povray_r** (±0.00%): -36.02% (Variant: GVNPRE-simpl_1-pre_0-[])
 * **511.povray_r** (±0.00%): -35.47% (Variant: NewGVN-simpl_1-pre_0-[opt])
 * **519.lbm_r** (±0.00%): -19.24% (Variant: GVNPRE-simpl_1-pre_0-[])
 * **519.lbm_r** (±0.00%): -19.24% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **520.omnetpp_r** (±0.00%): -33.44% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **520.omnetpp_r** (±0.00%): -33.36% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **520.omnetpp_r** (±0.00%): -33.40% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **520.omnetpp_r** (±0.00%): -33.22% (Variant: GVNPRE-simpl_1-pre_0-[])
 * **526.blender_r** (±0.00%): -36.93% (Variant: GVNPRE-simpl_1-pre_0-[])
 * **526.blender_r** (±0.00%): -36.66% (Variant: NewGVN-simpl_1-pre_0-[opt])
 * **531.deepsjeng_r** (±0.00%): -42.60% (Variant: GVNPRE-simpl_1-pre_0-[])
 * **531.deepsjeng_r** (±0.00%): -40.89% (Variant: NewGVN-simpl_1-pre_0-[opt])
 * **538.imagick_r** (±0.00%): -44.84% (Variant: GVNPRE-simpl_1-pre_0-[])
 * **538.imagick_r** (±0.00%): -44.12% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **541.leela_r** (±0.00%): -39.02% (Variant: GVNPRE-simpl_1-pre_0-[])
-* **541.leela_r** (±0.00%): -38.62% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **541.leela_r** (±0.00%): -39.33% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **541.leela_r** (±0.00%): -38.93% (Variant: NewGVN-simpl_1-pre_0-[opt])
 * **544.nab_r** (±0.00%): -41.23% (Variant: GVNPRE-simpl_1-pre_0-[])
 * **544.nab_r** (±0.00%): -39.72% (Variant: NewGVN-simpl_1-pre_0-[opt])
 * **557.xz_r** (±0.00%): -42.05% (Variant: GVNPRE-simpl_1-pre_0-[])
@@ -41,12 +41,12 @@ _No significant winners._
 * **605.mcf_s** (±0.00%): -53.30% (Variant: NewGVN-simpl_1-pre_0-[opt])
 * **619.lbm_s** (±0.00%): -19.12% (Variant: GVNPRE-simpl_1-pre_0-[])
 * **619.lbm_s** (±0.00%): -19.12% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **620.omnetpp_s** (±0.00%): -33.44% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **620.omnetpp_s** (±0.00%): -33.36% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **620.omnetpp_s** (±0.00%): -33.40% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **620.omnetpp_s** (±0.00%): -33.22% (Variant: GVNPRE-simpl_1-pre_0-[])
 * **631.deepsjeng_s** (±0.00%): -42.60% (Variant: GVNPRE-simpl_1-pre_0-[])
 * **631.deepsjeng_s** (±0.00%): -40.89% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **641.leela_s** (±0.00%): -39.02% (Variant: GVNPRE-simpl_1-pre_0-[])
-* **641.leela_s** (±0.00%): -38.62% (Variant: NewGVN-simpl_1-pre_0-[opt])
+* **641.leela_s** (±0.00%): -39.33% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **641.leela_s** (±0.00%): -38.93% (Variant: NewGVN-simpl_1-pre_0-[opt])
 * **657.xz_s** (±0.00%): -42.05% (Variant: GVNPRE-simpl_1-pre_0-[])
 * **657.xz_s** (±0.00%): -40.96% (Variant: NewGVN-simpl_1-pre_0-[opt])
 
@@ -62,5 +62,5 @@ _No significant winners._
   - Worst (±0.00%): -57.41% (GVNPRE-simpl_1-pre_0-[])
 
 ## Average Speedups
-* **GVNPRE-simpl_1-pre_0-[]**: -39.93%
-* **NewGVN-simpl_1-pre_0-[opt]**: -38.86%
+* **GVNPRE-simpl_1-pre_0-[]**: -39.95%
+* **NewGVN-simpl_1-pre_0-[opt]**: -38.89%

@@ -45,3 +45,7 @@
 * **600.perlbench_s**: 3.33% total swing
   - Best (±0.46%): 3.92% (GVNPRE-simpl_1-pre_0-[])
   - Worst (±0.49%): 0.60% (NewGVN-simpl_1-pre_0-[opt])
+
+## Average Speedups
+* **GVNPRE-simpl_1-pre_0-[]**: 1.07%
+* **NewGVN-simpl_1-pre_0-[opt]**: 0.45%

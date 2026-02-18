@@ -31,3 +31,7 @@ _No significant winners._
 * **508.namd_r**: 5.55% total swing
   - Best (±0.00%): -3.50% (NewGVN-simpl_1-pre_0-[opt])
   - Worst (±0.00%): -9.04% (GVNPRE-simpl_1-pre_0-[])
+
+## Average Speedups
+* **GVNPRE-simpl_1-pre_0-[]**: -3.30%
+* **NewGVN-simpl_1-pre_0-[opt]**: -2.94%

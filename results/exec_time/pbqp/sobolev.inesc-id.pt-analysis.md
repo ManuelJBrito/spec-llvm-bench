@@ -36,3 +36,7 @@
 * **544.nab_r**: 27.17% total swing
   - Best (±0.03%): 15.97% (GVNPRE-simpl_1-pre_0-[])
   - Worst (±0.16%): -11.20% (NewGVN-simpl_1-pre_0-[opt])
+
+## Average Speedups
+* **GVNPRE-simpl_1-pre_0-[]**: 0.88%
+* **NewGVN-simpl_1-pre_0-[opt]**: 0.20%

@@ -44,3 +44,7 @@ _No significant losers._
 * **623.xalancbmk_s**: 3.10% total swing
   - Best (±1.28%): 1.30% (GVNPRE-simpl_1-pre_0-[])
   - Worst (±1.20%): -1.81% (NewGVN-simpl_1-pre_0-[opt])
+
+## Average Speedups
+* **GVNPRE-simpl_1-pre_0-[]**: 7.04%
+* **NewGVN-simpl_1-pre_0-[opt]**: 6.47%
