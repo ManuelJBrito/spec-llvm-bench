@@ -9,6 +9,7 @@
 #
 # Environment variables:
 #   REMOTE_DIR   Remote repo root (default: ~/spec-llvm-bench)
+#   RSYNC        Set to 1 to rsync results back after the run
 #   NOTIFY       Set to 1 to notify on completion via notify.sh
 
 set -eo pipefail
@@ -29,6 +30,7 @@ Usage: remote_run.sh <host> <script> [args...]
 
 Environment variables:
   REMOTE_DIR   Remote repo root (default: ~/spec-llvm-bench)
+  RSYNC        Set to 1 to rsync results back after the run
   NOTIFY       Set to 1 to notify on completion via notify.sh
 USAGE
     exit 1
@@ -125,12 +127,14 @@ log "Running ${SCRIPT} ${ARGS[*]:-} ..."
 ssh "$HOST" "cd ${REMOTE_DIR} && bash ${SCRIPT} $(printf '%q ' "${ARGS[@]}")" \
     2>&1 | tee -a "$LOG_FILE" || EXIT_CODE=$?
 
-# 3. Rsync results back
-log "Syncing results from ${HOST} ..."
-mkdir -p "${BASE}/results/remote/${HOST}"
-rsync -az \
-    "${HOST}:${REMOTE_DIR}/results/" \
-    "${BASE}/results/remote/${HOST}/" 2>&1 | tee -a "$LOG_FILE"
+# 3. Rsync results back (opt-in)
+if [ "${RSYNC:-0}" = "1" ]; then
+    log "Syncing results from ${HOST} ..."
+    mkdir -p "${BASE}/results/remote/${HOST}"
+    rsync -az \
+        "${HOST}:${REMOTE_DIR}/results/" \
+        "${BASE}/results/remote/${HOST}/" 2>&1 | tee -a "$LOG_FILE"
+fi
 
 # 4. Update state
 if [ "$EXIT_CODE" -eq 0 ]; then
