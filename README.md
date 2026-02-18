@@ -140,6 +140,26 @@ Each report contains:
 - **Variant swings** (>3% difference among variants for the same benchmark)
 
 
+GVN Pass Timing
+---------------
+
+To measure how much compile time GVN/NewGVN spends per benchmark, build a variant with `time_passes=1`:
+
+    ./scripts/build_variant.sh <variant> ref all time_passes=1
+
+This adds `-ftime-report` to the compiler flags, forces a sequential build (`-j1`) so outputs are attributable per translation unit, and writes timing output to `build-timepasses.log` inside the variant build directory.
+
+After building variants with timing enabled, collect the results:
+
+    ./scripts/collect_pass_times.sh
+
+This parses all `build-timepasses.log` files, sums `GVNPass`/`NewGVNPass` wall time across translation units per benchmark, and writes:
+
+    results/<machine>-pass_times.csv
+
+CSV schema: `(benchmark, machine, variant, regalloc, gvn_time_s, total_opt_time_s, gvn_pct)`
+
+
 GVN Pass Statistics
 -------------------
 
@@ -196,6 +216,8 @@ Repository Structure
     │   ├── results_to_csv.sh
     │   ├── collect_gvn_stats.py
     │   ├── collect_gvn_stats.sh
+    │   ├── _collect_pass_times.py
+    │   ├── collect_pass_times.sh
     │   └── common.sh *
     ├── test-suite/ *             # LLVM test-suite + SPEC integration
     ├── toolchain/

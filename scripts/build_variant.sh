@@ -16,6 +16,7 @@ Options (key=value):
   dbg_srcs=a.c,b.cpp         Enable debug flags for these sources
   dbg_funcs=f1,f2            Limit debug output to functions
   dbg_mode=DUMP_CRASH        Debug preset (default: DUMP_CRASH)
+  time_passes=1              Add -ftime-report; forces -j1; writes build-timepasses.log
 
 Examples:
   $0 NoGVN
@@ -39,6 +40,7 @@ DBG_SRCS=""
 DBG_FUNCS=""
 DBG_MODE=""
 RUN_UNDER=""
+TIME_PASSES=0
 
 case "${1:-}" in
   -h|--help)
@@ -65,6 +67,9 @@ for arg in "$@"; do
     run_under=*)
       RUN_UNDER="${arg#*=}"
       ;;
+    time_passes=*)
+      TIME_PASSES="${arg#*=}"
+      ;;
     *)
       echo "Unknown argument: $arg" >&2
       exit 1
@@ -87,6 +92,11 @@ if [[ -z "$VARIANT_FLAGS" ]]; then
 fi
 
 CFLAGS="$COMMON_FLAGS $VARIANT_FLAGS"
+
+if [[ "$TIME_PASSES" == "1" ]]; then
+  CFLAGS="$CFLAGS -ftime-report"
+  NINJA_JOBS=1
+fi
 
 BUILD_ROOT="$(pwd)/$BUILD_ROOT_BASE/$VARIANT"
 mkdir -p "$BUILD_ROOT"
@@ -130,7 +140,11 @@ if [[ "$NO_CLEAN" != "1" ]]; then
   ninja -t clean "External/SPEC/$SPEC_TARGET"
 fi
 
-ninja -j"$NINJA_JOBS" "External/SPEC/$SPEC_TARGET" 2>&1 | tee build.log
+if [[ "$TIME_PASSES" == "1" ]]; then
+  ninja -j"$NINJA_JOBS" "External/SPEC/$SPEC_TARGET" 2>&1 | tee build-timepasses.log
+else
+  ninja -j"$NINJA_JOBS" "External/SPEC/$SPEC_TARGET" 2>&1 | tee build.log
+fi
 # Rsync the variant build to the remote host
 if [[ -n "$TEST_SUITE_REMOTE_HOST" && -n "$TEST_SUITE_REMOTE_BUILD_DIR" ]]; then
     REMOTE_VARIANT_DIR="$TEST_SUITE_REMOTE_BUILD_DIR/$VARIANT"
