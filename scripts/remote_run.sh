@@ -9,6 +9,7 @@
 #
 # Environment variables:
 #   REMOTE_DIR   Remote repo root (default: ~/spec-llvm-bench)
+#   BG           Set to 1 to run in background (survives SSH disconnects)
 #   RSYNC        Set to 1 to rsync results back after the run
 #   NOTIFY       Set to 1 to notify on completion via notify.sh
 
@@ -30,6 +31,7 @@ Usage: remote_run.sh <host> <script> [args...]
 
 Environment variables:
   REMOTE_DIR   Remote repo root (default: ~/spec-llvm-bench)
+  BG           Set to 1 to run in background (survives SSH disconnects)
   RSYNC        Set to 1 to rsync results back after the run
   NOTIFY       Set to 1 to notify on completion via notify.sh
 USAGE
@@ -49,9 +51,18 @@ if [ -z "${REMOTE_DIR:-}" ] && [ -f "$REMOTES_CONF" ]; then
 fi
 REMOTE_DIR="${REMOTE_DIR:-~/spec-llvm-bench}"
 SCRIPT_NAME="$(basename "$SCRIPT")"
-TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
+TIMESTAMP="${REMOTE_RUN_TIMESTAMP:-$(date +%Y%m%d-%H%M%S)}"
 LOG_DIR="${BASE}/results/logs/${HOST}"
 LOG_FILE="${LOG_DIR}/${TIMESTAMP}-${SCRIPT_NAME}.log"
+
+# --bg: re-exec under nohup so the run survives SSH disconnects
+if [ "${BG:-0}" = "1" ]; then
+    mkdir -p "$LOG_DIR"
+    BG=0 REMOTE_RUN_TIMESTAMP="$TIMESTAMP" \
+        nohup "$0" "$HOST" "$SCRIPT" "${ARGS[@]}" >> "$LOG_FILE" 2>&1 &
+    echo "[remote_run] PID=$! log=$LOG_FILE"
+    exit 0
+fi
 STATE_FILE="${LOG_DIR}/state.json"
 RUN_ID="${TIMESTAMP}-${SCRIPT_NAME}"
 
