@@ -140,7 +140,9 @@ ssh "$HOST" "cd ${REMOTE_DIR} && git pull --ff-only" 2>&1 | tee -a "$LOG_FILE" |
 if [ "$EXIT_CODE" -eq 0 ]; then
     log "Running ${SCRIPT} ${ARGS[*]:-} ..."
     # shellcheck disable=SC2029
-    ssh "$HOST" "cd ${REMOTE_DIR} && bash ${SCRIPT} $(printf '%q ' "${ARGS[@]}")" \
+    ARGS_STR=""
+    [ "${#ARGS[@]}" -gt 0 ] && ARGS_STR=" $(printf '%q ' "${ARGS[@]}")"
+    ssh "$HOST" "cd ${REMOTE_DIR} && bash ${SCRIPT}${ARGS_STR}" \
         2>&1 | tee -a "$LOG_FILE" || EXIT_CODE=$?
 fi
 
