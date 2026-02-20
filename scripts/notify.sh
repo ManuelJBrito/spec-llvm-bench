@@ -9,6 +9,13 @@
 
 set -eo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+CONF="${SCRIPT_DIR}/../conf/notify.conf"
+if [ -z "${NOTIFY_TOPIC:-}" ] && [ -f "$CONF" ]; then
+    # shellcheck source=../conf/notify.conf
+    source "$CONF"
+fi
+
 ATTACH_FILE=""
 while [[ "${1:-}" == -* ]]; do
     case "$1" in
