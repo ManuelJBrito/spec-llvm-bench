@@ -66,6 +66,48 @@ is_cpp_bench() {
   [[ "$CPP_BENCHMARKS" == *"$1"* ]]
 }
 
+# Map benchmark ID to its SPEC source directory (speed benchmarks use rate sources)
+declare -A BENCH_SRC_MAP=(
+  [600.perlbench_s]=500.perlbench_r
+  [602.gcc_s]=502.gcc_r
+  [605.mcf_s]=505.mcf_r
+  [620.omnetpp_s]=520.omnetpp_r
+  [623.xalancbmk_s]=523.xalancbmk_r
+  [625.x264_s]=525.x264_r
+  [631.deepsjeng_s]=531.deepsjeng_r
+  [641.leela_s]=541.leela_r
+  [657.xz_s]=557.xz_r
+)
+
+# Find source files containing the given function names.
+# Uses CSV src column if available, otherwise greps the SPEC source tree.
+find_source_files() {
+  local bench="$1"
+  shift
+  local funcs=("$@")
+
+  local src_dir="$SPEC_DIR/benchspec/CPU/${BENCH_SRC_MAP[$bench]}/src"
+  local srcs=()
+
+  # First try: CSV src column (column 3)
+  mapfile -t csv_srcs < <(tail -n +2 "$hotness_csv" | head -n "$TOP_N" | cut -d',' -f3 | sort -u)
+  local have_csv_srcs=1
+  for s in "${csv_srcs[@]}"; do
+    if [[ -z "$s" ]]; then
+      have_csv_srcs=0
+      break
+    fi
+  done
+
+  if [[ "$have_csv_srcs" -eq 1 ]]; then
+    srcs=("${csv_srcs[@]}")
+  fi
+
+  if [[ ${#srcs[@]} -gt 0 ]]; then
+    printf '%s\n' "${srcs[@]}"
+  fi
+}
+
 # Parse IR function name from dump header:
 #   ; *** IR Dump Before NewGVNPass on <ir_name> ***
 parse_ir_name() {
@@ -125,7 +167,9 @@ extract_function() {
 # === Main ===
 
 mkdir -p "$OUTPUT_DIR"
-echo "bench,demangled_name,ir_name,pct,file" > "$MANIFEST"
+if [[ ! -f "$MANIFEST" ]]; then
+  echo "bench,demangled_name,ir_name,pct,file" > "$MANIFEST"
+fi
 
 export DBG_PASS=newgvn
 
@@ -151,27 +195,36 @@ for bench in "${BENCHMARKS[@]}"; do
 
   # --- Phase 1: Build and dump ---
   if [[ "$SKIP_BUILD" != "1" ]]; then
-    rm -f "$IR_DUMP"/*
+    find "$IR_DUMP" -mindepth 1 -delete
 
     build_args=(
       "$VARIANT" "$RUN_TYPE"
       "CINT2017speed/${bench}/${bench}"
     )
 
+    # Resolve source files containing hot functions
+    mapfile -t src_files < <(find_source_files "$bench" "${target_funcs[@]}")
+    if [[ ${#src_files[@]} -gt 0 ]]; then
+      src_list=$(printf '%s,' "${src_files[@]}" | sed 's/,$//')
+    else
+      echo "  WARN: could not resolve source files, falling back to dbg_srcs=*"
+      src_list="*"
+    fi
+
     if is_cpp_bench "$bench"; then
-      # C++ benchmarks: dump all functions, filter later by demangling
-      build_args+=("dbg_srcs=*")
+      # C++ benchmarks: dump all functions in matched sources, filter later by demangling
+      build_args+=("dbg_srcs=$src_list")
     else
       # C benchmarks: use filter-print-funcs for efficiency
       func_list=$(printf '%s,' "${target_funcs[@]}" | sed 's/,$//')
-      build_args+=("dbg_srcs=*" "dbg_funcs=$func_list")
+      build_args+=("dbg_srcs=$src_list" "dbg_funcs=$func_list")
     fi
 
     echo "  Building with ${build_args[*]}"
     ./scripts/build_variant.sh "${build_args[@]}"
 
     mkdir -p "$STAGING_DIR/${bench}"
-    mv "$IR_DUMP"/* "$STAGING_DIR/${bench}/" 2>/dev/null || true
+    find "$IR_DUMP" -mindepth 1 -maxdepth 1 -exec mv -t "$STAGING_DIR/${bench}/" {} +
   fi
 
   # --- Phase 2: Extract and clean ---
