@@ -210,6 +210,28 @@ Output:
 - `profiles/hotness/` — per-benchmark hot function CSVs
 
 
+Perf Bisection
+---------------
+
+Isolate which source files and functions are GVN-sensitive in a given variant:
+
+    ./scripts/perf_bisect.sh <benchmark> <variant> [runs=3] [threshold=2]
+
+The script:
+1. Measures baseline (GVN enabled) vs GVN-disabled performance
+2. Seeds the search with hot functions from `profiles/hotness/<benchmark>.csv`
+3. Binary-searches on source files by selectively disabling GVN (`-mllvm -skip-gvn`)
+4. Binary-searches on functions within identified files (`-mllvm -skip-gvn-for-funcs` or `-skip-newgvn-for-funcs`)
+5. When both halves of a split are significant, switches to removal mode (re-enable one-by-one)
+
+Output: `results/perf_analysis/<benchmark>/bisect-<variant>.json`
+
+Run on multiple variants and compare results to understand where GVN behavior differs:
+
+    ./scripts/perf_bisect.sh 544.nab_r GVNPRE-s1-p0-greedy
+    ./scripts/perf_bisect.sh 544.nab_r NewGVN-opt-s1-p0-greedy
+
+
 Repository Structure
 --------------------
 
@@ -237,6 +259,7 @@ Repository Structure
     │   ├── collect_gvn_stats.sh
     │   ├── _collect_pass_times.py
     │   ├── collect_pass_times.sh
+    │   ├── perf_bisect.sh
     │   ├── _worklog.py
     │   ├── worklog.sh
     │   └── common.sh *

@@ -13,9 +13,8 @@ case "$1" in
 esac
 shift
 
-DBG_SRCS=()
-DBG_FUNCS=""
-# Extract source file from arguments
+# Extract source file basename from arguments
+SRC_BASE=""
 for arg in "$@"; do
   case "$arg" in
     *.c|*.cpp|*.cc|*.C)
@@ -24,19 +23,42 @@ for arg in "$@"; do
   esac
 done
 
-# Determine if we should use DBG_FLAGS for this source file
+EXTRA_FLAGS=""
+
+# === GVN skip support (for perf bisection) ===
+# SKIP_GVN_SRCS: comma-separated basenames — skip GVN entirely for these files
+# SKIP_GVN_FUNCS: comma-separated function names — skip GVN for these functions
+# GVN_FUNC_SKIP_FLAG: which per-function flag to use (skip-gvn-for-funcs or skip-newgvn-for-funcs)
+if [[ -n "$SKIP_GVN_SRCS" && -n "$SRC_BASE" ]]; then
+  IFS=',' read -ra _skip_srcs <<< "$SKIP_GVN_SRCS"
+  for _s in "${_skip_srcs[@]}"; do
+    if [[ "$SRC_BASE" == "$_s" ]]; then
+      EXTRA_FLAGS="-mllvm -skip-gvn"
+      break
+    fi
+  done
+elif [[ -n "$SKIP_GVN_FUNCS" && -n "$GVN_FUNC_SKIP_FLAG" ]]; then
+  EXTRA_FLAGS="-mllvm -${GVN_FUNC_SKIP_FLAG}=${SKIP_GVN_FUNCS}"
+fi
+
+# === Debug output support ===
+# DBG_SRCS: comma-separated basenames for debug IR dumps
+# DBG_FUNCS: function filter for debug output
 DBG_MODE=0
-for source in "${DBG_SRCS[@]}"; do
-  if [ "$SRC_BASE" = "$source" ]; then
-    DBG_MODE=1
-    break
-  fi
-done
+if [[ -n "$DBG_SRCS" && -n "$SRC_BASE" ]]; then
+  IFS=',' read -ra _dbg_srcs <<< "$DBG_SRCS"
+  for _d in "${_dbg_srcs[@]}"; do
+    if [[ "$SRC_BASE" == "$_d" ]]; then
+      DBG_MODE=1
+      break
+    fi
+  done
+fi
 
 COMMON_FLAGS="$COMMON_FLAGS -no-pedantic"
 DBG_FLAGS="-mllvm -print-module-scope -mllvm -print-before=newgvn -mllvm -filter-print-funcs=$DBG_FUNCS -mllvm -ir-dump-directory=$IR_DUMP"
-if [ "$DBG_MODE" = "1" ]; then
-  exec "$CLANG" "$@" $COMMON_FLAGS $DBG_FLAGS 
+if [[ "$DBG_MODE" == "1" ]]; then
+  exec "$CLANG" "$@" $COMMON_FLAGS $EXTRA_FLAGS $DBG_FLAGS
 else
-  exec "$CLANG" "$@" $COMMON_FLAGS
+  exec "$CLANG" "$@" $COMMON_FLAGS $EXTRA_FLAGS
 fi

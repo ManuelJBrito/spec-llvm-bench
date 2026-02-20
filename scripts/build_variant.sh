@@ -17,11 +17,15 @@ Options (key=value):
   dbg_funcs=f1,f2            Limit debug output to functions
   dbg_mode=DUMP_CRASH        Debug preset (default: DUMP_CRASH)
   time_passes=1              Add -ftime-report; forces -j1; writes build-timepasses.log
+  skip_gvn_srcs=a.c,b.cpp   Skip GVN entirely for these source files
+  skip_gvn_funcs=f1,f2       Skip GVN for these functions (per-function)
+  gvn_func_skip_flag=FLAG    Per-function skip flag name (skip-gvn-for-funcs or skip-newgvn-for-funcs)
 
 Examples:
   $0 NoGVN
   $0 NoGVN ref intspeed no_clean=1
   $0 NoGVN ref all dbg_srcs=foo.c dbg_mode=DUMP_CRASH
+  $0 GVNPRE-s1-p0-greedy ref 544.nab_r skip_gvn_srcs=nabmd.c
 EOF
 }
 
@@ -41,6 +45,9 @@ DBG_FUNCS=""
 DBG_MODE=""
 RUN_UNDER=""
 TIME_PASSES=0
+SKIP_GVN_SRCS=""
+SKIP_GVN_FUNCS=""
+GVN_FUNC_SKIP_FLAG=""
 
 case "${1:-}" in
   -h|--help)
@@ -69,6 +76,15 @@ for arg in "$@"; do
       ;;
     time_passes=*)
       TIME_PASSES="${arg#*=}"
+      ;;
+    skip_gvn_srcs=*)
+      SKIP_GVN_SRCS="${arg#*=}"
+      ;;
+    skip_gvn_funcs=*)
+      SKIP_GVN_FUNCS="${arg#*=}"
+      ;;
+    gvn_func_skip_flag=*)
+      GVN_FUNC_SKIP_FLAG="${arg#*=}"
       ;;
     *)
       echo "Unknown argument: $arg" >&2
@@ -105,6 +121,11 @@ mkdir -p "$BUILD_ROOT"
 export DBG_SRCS
 export DBG_FUNCS
 export DBG_MODE
+
+# Export GVN skip controls for compiler wrapper (perf bisection)
+export SKIP_GVN_SRCS
+export SKIP_GVN_FUNCS
+export GVN_FUNC_SKIP_FLAG
 
 # Configure the build
 CMAKE_ARGS=(
