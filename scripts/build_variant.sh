@@ -121,6 +121,7 @@ mkdir -p "$BUILD_ROOT"
 export DBG_SRCS
 export DBG_FUNCS
 export DBG_MODE
+export DBG_PASS="${DBG_PASS:-}"
 
 # Export GVN skip controls for compiler wrapper (perf bisection)
 export SKIP_GVN_SRCS

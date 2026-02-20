@@ -42,13 +42,14 @@ elif [[ -n "$SKIP_GVN_FUNCS" && -n "$GVN_FUNC_SKIP_FLAG" ]]; then
 fi
 
 # === Debug output support ===
-# DBG_SRCS: comma-separated basenames for debug IR dumps
-# DBG_FUNCS: function filter for debug output
+# DBG_SRCS: comma-separated basenames, or "*" for all sources
+# DBG_FUNCS: comma-separated function filter (omit to dump all functions)
+# DBG_PASS: pass to dump before (default: newgvn)
 DBG_MODE=0
 if [[ -n "$DBG_SRCS" && -n "$SRC_BASE" ]]; then
   IFS=',' read -ra _dbg_srcs <<< "$DBG_SRCS"
   for _d in "${_dbg_srcs[@]}"; do
-    if [[ "$SRC_BASE" == "$_d" ]]; then
+    if [[ "$_d" == "*" || "$SRC_BASE" == "$_d" ]]; then
       DBG_MODE=1
       break
     fi
@@ -56,7 +57,11 @@ if [[ -n "$DBG_SRCS" && -n "$SRC_BASE" ]]; then
 fi
 
 COMMON_FLAGS="$COMMON_FLAGS -no-pedantic"
-DBG_FLAGS="-mllvm -print-module-scope -mllvm -print-before=newgvn -mllvm -filter-print-funcs=$DBG_FUNCS -mllvm -ir-dump-directory=$IR_DUMP"
+_DBG_PASS="${DBG_PASS:-newgvn}"
+DBG_FLAGS="-mllvm -print-module-scope -mllvm -print-before=${_DBG_PASS} -mllvm -ir-dump-directory=${IR_DUMP}"
+if [[ -n "$DBG_FUNCS" ]]; then
+  DBG_FLAGS="$DBG_FLAGS -mllvm -filter-print-funcs=$DBG_FUNCS"
+fi
 if [[ "$DBG_MODE" == "1" ]]; then
   exec "$CLANG" "$@" $COMMON_FLAGS $EXTRA_FLAGS $DBG_FLAGS
 else
