@@ -8,10 +8,11 @@
 # will NOT be present on the remote.
 #
 # Environment variables:
-#   REMOTE_DIR   Remote repo root (default: ~/spec-llvm-bench)
-#   BG           Set to 1 to run in background (survives SSH disconnects)
-#   RSYNC        Set to 1 to rsync results back after the run
-#   NOTIFY       Set to 1 to notify on completion via notify.sh
+#   REMOTE_DIR     Remote repo root (default: ~/spec-llvm-bench)
+#   BG             Set to 1 to run in background (survives SSH disconnects)
+#   REBUILD_LLVM   Set to 1 to rebuild LLVM on remote after pull
+#   RSYNC          Set to 1 to rsync results back after the run
+#   NOTIFY         Set to 1 to notify on completion via notify.sh
 
 set -eo pipefail
 
@@ -30,10 +31,11 @@ Usage: remote_run.sh <host> <script> [args...]
   [args]    Arguments forwarded to the remote script
 
 Environment variables:
-  REMOTE_DIR   Remote repo root (default: ~/spec-llvm-bench)
-  BG           Set to 1 to run in background (survives SSH disconnects)
-  RSYNC        Set to 1 to rsync results back after the run
-  NOTIFY       Set to 1 to notify on completion via notify.sh
+  REMOTE_DIR     Remote repo root (default: ~/spec-llvm-bench)
+  BG             Set to 1 to run in background (survives SSH disconnects)
+  REBUILD_LLVM   Set to 1 to rebuild LLVM on remote after pull
+  RSYNC          Set to 1 to rsync results back after the run
+  NOTIFY         Set to 1 to notify on completion via notify.sh
 USAGE
     exit 1
 }
@@ -58,7 +60,7 @@ LOG_FILE="${LOG_DIR}/${TIMESTAMP}-${SCRIPT_NAME}.log"
 # --bg: re-exec under nohup so the run survives SSH disconnects
 if [ "${BG:-0}" = "1" ]; then
     mkdir -p "$LOG_DIR"
-    BG=0 REMOTE_RUN_TIMESTAMP="$TIMESTAMP" \
+    BG=0 REBUILD_LLVM="${REBUILD_LLVM:-0}" REMOTE_RUN_TIMESTAMP="$TIMESTAMP" \
         nohup "$0" "$HOST" "$SCRIPT" "${ARGS[@]}" >> "$LOG_FILE" 2>&1 &
     echo "[remote_run] PID=$! log=$LOG_FILE"
     exit 0
@@ -135,6 +137,14 @@ EXIT_CODE=0
 log "Pulling on ${HOST}:${REMOTE_DIR} ..."
 # shellcheck disable=SC2029
 ssh "$HOST" "cd ${REMOTE_DIR} && git pull --ff-only" 2>&1 | tee -a "$LOG_FILE" || EXIT_CODE=$?
+
+# 1.5. Rebuild LLVM (opt-in)
+if [ "$EXIT_CODE" -eq 0 ] && [ "${REBUILD_LLVM:-0}" = "1" ]; then
+    log "Rebuilding LLVM on ${HOST} ..."
+    # shellcheck disable=SC2029
+    ssh "$HOST" "cd ${REMOTE_DIR}/llvm-project && git pull --ff-only && ninja -C build -j\$(nproc)" \
+        2>&1 | tee -a "$LOG_FILE" || EXIT_CODE=$?
+fi
 
 # 2. Run the script (only if pull succeeded)
 if [ "$EXIT_CODE" -eq 0 ]; then
