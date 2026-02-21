@@ -154,7 +154,7 @@ invalidate_objects() {
   IFS=',' read -ra srcs <<< "$srcs_csv"
   for src in "${srcs[@]}"; do
     local stem="${src%.*}"
-    find "$BUILD_DIR/$SPEC_TARGET" \( -name "${stem}.o" -o -name "${stem}.cpp.o" -o -name "${stem}.c.o" \) 2>/dev/null \
+    find "$BUILD_DIR/$SPEC_TARGET" \( -name "${stem}.o" -o -name "${stem}.c.o" -o -name "${stem}.cc.o" -o -name "${stem}.cpp.o" \) 2>/dev/null \
       | xargs rm -f 2>/dev/null || true
   done
 }
