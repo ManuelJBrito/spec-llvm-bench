@@ -48,6 +48,7 @@ HOTNESS_CSV="$BASE/profiles/hotness/${BENCHMARK}.csv"
 BUILD_DIR="$BASE/$BUILD_ROOT_BASE/$VARIANT"
 OUTPUT_DIR="$BASE/results/perf_analysis/$BENCHMARK"
 OUTPUT_JSON="$OUTPUT_DIR/bisect-${VARIANT}.json"
+BUILD_LOG="$OUTPUT_DIR/bisect-${VARIANT}-build.log"
 
 mkdir -p "$OUTPUT_DIR"
 
@@ -102,7 +103,13 @@ build_benchmark() {
   [[ -n "$skip_srcs" ]]  && extra_args+=(skip_gvn_srcs="$skip_srcs")
   [[ -n "$skip_funcs" ]] && extra_args+=(skip_gvn_funcs="$skip_funcs" gvn_func_skip_flag="$GVN_FUNC_SKIP_FLAG")
 
-  "$BASE/scripts/build_variant.sh" "$VARIANT" ref "$SPEC_SUITE/$BENCHMARK" "${extra_args[@]}" > /dev/null 2>&1
+  if ! "$BASE/scripts/build_variant.sh" "$VARIANT" ref "$SPEC_SUITE/$BENCHMARK" "${extra_args[@]}" \
+      >> "$BUILD_LOG" 2>&1; then
+    echo "FAILED (see $BUILD_LOG)" >&2
+    echo "  Last 10 lines:" >&2
+    tail -10 "$BUILD_LOG" >&2
+    return 1
+  fi
 }
 
 measure_time() {
@@ -111,8 +118,13 @@ measure_time() {
 
   local times=()
   for ((i=0; i<RUNS; i++)); do
-    taskset -c 1 "$LIT" -j1 "$SPEC_TARGET" \
-      -o "results/bisect_run_${i}.json" > /dev/null 2>&1
+    if ! taskset -c 1 "$LIT" -j1 "$SPEC_TARGET" \
+        -o "results/bisect_run_${i}.json" >> "$BUILD_LOG" 2>&1; then
+      echo "FAILED (lit run $i failed, see $BUILD_LOG)" >&2
+      tail -10 "$BUILD_LOG" >&2
+      cd "$BASE"
+      echo "ERROR"; return 1
+    fi
 
     local t
     t=$(jq -r ".tests[] | select(.name | test(\"${BENCHMARK}\")) | .metrics.exec_time" \
@@ -122,6 +134,7 @@ measure_time() {
   cd "$BASE"
 
   if [[ ${#times[@]} -eq 0 ]]; then
+    echo "ERROR (no valid times collected)" >&2
     echo "ERROR"; return 1
   fi
   printf '%s\n' "${times[@]}" | sort -n | awk '{a[NR]=$1} END{print a[int((NR+1)/2)]}'
