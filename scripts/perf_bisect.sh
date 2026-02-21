@@ -84,6 +84,7 @@ find_spec_target() {
 
 SPEC_TARGET=$(find_spec_target "$BENCHMARK")
 SPEC_SUITE=$(echo "$SPEC_TARGET" | cut -d/ -f3)
+NINJA_TARGET="$SPEC_TARGET/all"
 
 echo "=== Perf Bisection ==="
 echo "  Benchmark:  $BENCHMARK"
@@ -185,7 +186,7 @@ echo -n "  GVN fully disabled... "
 # Skip GVN for all sources to get the "no GVN" reference for this variant
 mapfile -t ALL_SRCS_TMP < <(
   cd "$BUILD_DIR"
-  ninja -t commands "$SPEC_TARGET" 2>/dev/null \
+  ninja -t commands "$NINJA_TARGET" 2>/dev/null \
     | grep -oP '[^ ]+\.(c|cpp|cc|C)\b' \
     | sort -u \
     | while read -r src; do basename "$src"; done

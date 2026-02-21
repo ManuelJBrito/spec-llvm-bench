@@ -158,14 +158,21 @@ cmake "${CMAKE_ARGS[@]}"
 
 cd "$BUILD_ROOT"
 
+# Ninja target: "External/SPEC/all" for everything, "External/SPEC/<suite>/<bench>/all" for specific
+if [[ "$SPEC_TARGET" == "all" ]]; then
+  NINJA_TARGET="External/SPEC/all"
+else
+  NINJA_TARGET="External/SPEC/$SPEC_TARGET/all"
+fi
+
 if [[ "$NO_CLEAN" != "1" ]]; then
-  ninja -t clean "External/SPEC/$SPEC_TARGET"
+  ninja -t clean "$NINJA_TARGET"
 fi
 
 if [[ "$TIME_PASSES" == "1" ]]; then
-  ninja -j"$NINJA_JOBS" "External/SPEC/$SPEC_TARGET" 2>&1 | tee build-timepasses.log
+  ninja -j"$NINJA_JOBS" "$NINJA_TARGET" 2>&1 | tee build-timepasses.log
 else
-  ninja -j"$NINJA_JOBS" "External/SPEC/$SPEC_TARGET" 2>&1 | tee build.log
+  ninja -j"$NINJA_JOBS" "$NINJA_TARGET" 2>&1 | tee build.log
 fi
 # Rsync the variant build to the remote host
 if [[ -n "$TEST_SUITE_REMOTE_HOST" && -n "$TEST_SUITE_REMOTE_BUILD_DIR" ]]; then
