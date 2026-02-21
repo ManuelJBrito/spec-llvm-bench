@@ -2,74 +2,25 @@
 **Threshold:** ±3.0% change vs NoGVN baseline
 
 ## Winners (> +3%)
-_No significant winners._
+* **505.mcf_r** (±0.00%): 5.81% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **525.x264_r** (±0.00%): 4.41% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **605.mcf_s** (±0.00%): 5.70% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **625.x264_s** (±0.00%): 4.38% (Variant: GVNPRE-simpl_1-pre_0-[])
 
 ## Losers (< -3%)
-* **500.perlbench_r** (±0.00%): -49.86% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **500.perlbench_r** (±0.00%): -48.26% (Variant: GVNPRE-simpl_1-pre_0-[])
-* **502.gcc_r** (±0.00%): -48.87% (Variant: GVNPRE-simpl_1-pre_0-[])
-* **502.gcc_r** (±0.00%): -48.12% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **505.mcf_r** (±0.00%): -45.04% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **505.mcf_r** (±0.00%): -40.43% (Variant: GVNPRE-simpl_1-pre_0-[])
-* **508.namd_r** (±0.00%): -55.00% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **508.namd_r** (±0.00%): -54.30% (Variant: GVNPRE-simpl_1-pre_0-[])
-* **511.povray_r** (±0.00%): -50.02% (Variant: GVNPRE-simpl_1-pre_0-[])
-* **511.povray_r** (±0.00%): -48.80% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **519.lbm_r** (±0.00%): -23.02% (Variant: GVNPRE-simpl_1-pre_0-[])
-* **519.lbm_r** (±0.00%): -22.97% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **520.omnetpp_r** (±0.00%): -12.02% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **520.omnetpp_r** (±0.00%): -10.91% (Variant: GVNPRE-simpl_1-pre_0-[])
-* **523.xalancbmk_r** (±0.00%): -57.23% (Variant: GVNPRE-simpl_1-pre_0-[])
-* **523.xalancbmk_r** (±0.00%): -56.10% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **525.x264_r** (±0.00%): -28.44% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **525.x264_r** (±0.00%): -22.74% (Variant: GVNPRE-simpl_1-pre_0-[])
-* **526.blender_r** (±0.00%): -51.02% (Variant: GVNPRE-simpl_1-pre_0-[])
-* **526.blender_r** (±0.00%): -48.62% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **531.deepsjeng_r** (±0.00%): -39.48% (Variant: GVNPRE-simpl_1-pre_0-[])
-* **531.deepsjeng_r** (±0.00%): -38.75% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **538.imagick_r** (±0.00%): -68.86% (Variant: GVNPRE-simpl_1-pre_0-[])
-* **538.imagick_r** (±0.00%): -68.23% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **541.leela_r** (±0.00%): -32.74% (Variant: GVNPRE-simpl_1-pre_0-[])
-* **541.leela_r** (±0.00%): -31.39% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **544.nab_r** (±0.00%): -50.54% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **544.nab_r** (±0.00%): -49.78% (Variant: GVNPRE-simpl_1-pre_0-[])
-* **557.xz_r** (±0.00%): -72.29% (Variant: GVNPRE-simpl_1-pre_0-[])
-* **557.xz_r** (±0.00%): -69.81% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **600.perlbench_s** (±0.00%): -49.85% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **600.perlbench_s** (±0.00%): -48.26% (Variant: GVNPRE-simpl_1-pre_0-[])
-* **602.gcc_s** (±0.00%): -67.40% (Variant: GVNPRE-simpl_1-pre_0-[])
-* **602.gcc_s** (±0.00%): -65.91% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **605.mcf_s** (±0.00%): -42.17% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **605.mcf_s** (±0.00%): -38.03% (Variant: GVNPRE-simpl_1-pre_0-[])
-* **619.lbm_s** (±0.00%): -26.20% (Variant: GVNPRE-simpl_1-pre_0-[])
-* **619.lbm_s** (±0.00%): -26.11% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **620.omnetpp_s** (±0.00%): -11.23% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **620.omnetpp_s** (±0.00%): -10.82% (Variant: GVNPRE-simpl_1-pre_0-[])
-* **623.xalancbmk_s** (±0.00%): -57.89% (Variant: GVNPRE-simpl_1-pre_0-[])
-* **623.xalancbmk_s** (±0.00%): -56.34% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **625.x264_s** (±0.00%): -28.37% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **625.x264_s** (±0.00%): -22.80% (Variant: GVNPRE-simpl_1-pre_0-[])
-* **631.deepsjeng_s** (±0.00%): -39.85% (Variant: GVNPRE-simpl_1-pre_0-[])
-* **631.deepsjeng_s** (±0.00%): -38.94% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **641.leela_s** (±0.00%): -32.75% (Variant: GVNPRE-simpl_1-pre_0-[])
-* **641.leela_s** (±0.00%): -31.41% (Variant: NewGVN-simpl_1-pre_0-[opt])
-* **657.xz_s** (±0.00%): -40.78% (Variant: GVNPRE-simpl_1-pre_0-[])
-* **657.xz_s** (±0.00%): -38.57% (Variant: NewGVN-simpl_1-pre_0-[opt])
+_No significant losers._
 
 ## Variant Swings (> 3% difference among variants)
-* **505.mcf_r**: 4.60% total swing
-  - Best (±0.00%): -40.43% (GVNPRE-simpl_1-pre_0-[])
-  - Worst (±0.00%): -45.04% (NewGVN-simpl_1-pre_0-[opt])
-* **525.x264_r**: 5.70% total swing
-  - Best (±0.00%): -22.74% (GVNPRE-simpl_1-pre_0-[])
-  - Worst (±0.00%): -28.44% (NewGVN-simpl_1-pre_0-[opt])
-* **605.mcf_s**: 4.14% total swing
-  - Best (±0.00%): -38.03% (GVNPRE-simpl_1-pre_0-[])
-  - Worst (±0.00%): -42.17% (NewGVN-simpl_1-pre_0-[opt])
-* **625.x264_s**: 5.57% total swing
-  - Best (±0.00%): -22.80% (GVNPRE-simpl_1-pre_0-[])
-  - Worst (±0.00%): -28.37% (NewGVN-simpl_1-pre_0-[opt])
+* **505.mcf_r**: 3.09% total swing
+  - Best (±0.00%): 5.81% (GVNPRE-simpl_1-pre_0-[])
+  - Worst (±0.00%): 2.72% (NewGVN-simpl_1-pre_0-[opt])
+* **525.x264_r**: 4.44% total swing
+  - Best (±0.00%): 4.41% (GVNPRE-simpl_1-pre_0-[])
+  - Worst (±0.00%): -0.03% (NewGVN-simpl_1-pre_0-[opt])
+* **625.x264_s**: 4.33% total swing
+  - Best (±0.00%): 4.38% (GVNPRE-simpl_1-pre_0-[])
+  - Worst (±0.00%): 0.05% (NewGVN-simpl_1-pre_0-[opt])
 
 ## Average Speedups
-* **GVNPRE-simpl_1-pre_0-[]**: -42.19%
-* **NewGVN-simpl_1-pre_0-[opt]**: -42.50%
+* **GVNPRE-simpl_1-pre_0-[]**: 0.65%
+* **NewGVN-simpl_1-pre_0-[opt]**: 0.37%
