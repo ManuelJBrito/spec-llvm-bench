@@ -17,6 +17,7 @@ Requirements
 - SPEC CPU2017 (installed locally)
 - `yq` (YAML parser)
 - Standard Unix tools (`bash`, `python3`, `ninja`, `cmake`)
+- `pyyaml` (`pip install pyyaml`)
 
 
 Getting Started
@@ -36,7 +37,7 @@ Configure the environment:
 This step:
 - Clones and configures LLVM and the LLVM test-suite
 - Sets up SPEC CPU2017 integration
-- Generates common environment scripts
+- Generates `config.yaml` (shared project configuration)
 - Prepares build and results directories
 
 
@@ -112,7 +113,7 @@ Results and CSV Generation
 
 CSV files are generated via:
 
-    ./scripts/results_to_csv.sh
+    ./scripts/results_to_csv.py
 
 Generated output:
 
@@ -151,7 +152,7 @@ This adds `-ftime-report` to the compiler flags, forces a sequential build (`-j1
 
 After building variants with timing enabled, collect the results:
 
-    ./scripts/collect_pass_times.sh
+    ./scripts/collect_pass_times.py
 
 This parses all `build-timepasses.log` files, sums `GVNPass`/`NewGVNPass` wall time across translation units per benchmark, and writes:
 
@@ -163,7 +164,7 @@ CSV schema: `(benchmark, machine, variant, regalloc, gvn_time_s, total_opt_time_
 GVN Pass Statistics
 -------------------
 
-    ./scripts/collect_gvn_stats.sh
+    ./scripts/collect_gvn_stats.py
 
 Extracts GVN/NewGVN pass statistics from the test-suite JSON results (collected via `TEST_SUITE_COLLECT_STATS=ON`).
 
@@ -179,16 +180,16 @@ Work Log
 
 Track what has been built and run on each machine:
 
-    ./scripts/worklog.sh scan            # auto-discover state from filesystem
-    ./scripts/worklog.sh status          # show current state
-    ./scripts/worklog.sh list-pending    # show remaining work
+    ./scripts/worklog.py scan            # auto-discover state from filesystem
+    ./scripts/worklog.py status          # show current state
+    ./scripts/worklog.py list-pending    # show remaining work
 
 Manually update entries:
 
-    ./scripts/worklog.sh mark <host> built <variant>
-    ./scripts/worklog.sh mark <host> run <variant>
-    ./scripts/worklog.sh mark <host> csv_generated true
-    ./scripts/worklog.sh mark <host> perf_bisect <benchmark> done
+    ./scripts/worklog.py mark <host> built <variant>
+    ./scripts/worklog.py mark <host> run <variant>
+    ./scripts/worklog.py mark <host> csv_generated true
+    ./scripts/worklog.py mark <host> perf_bisect <benchmark> done
 
 Data is stored in `results/worklog.json`. Host defaults to the local machine when omitted.
 
@@ -249,20 +250,18 @@ Repository Structure
     │   ├── machine1.csv
     │   ├── machine2.csv
     │   └── machine3.csv *
+    ├── config.yaml *                 # Project configuration (generated)
     ├── scripts/
     │   ├── analyze_results.py
     │   ├── build_variant.sh
     │   ├── run_variant.sh
+    │   ├── config.py                 # Shared Python config (reads config.yaml)
+    │   ├── common.sh                 # Shared bash config (reads config.yaml)
     │   ├── results_to_csv.py
-    │   ├── results_to_csv.sh
     │   ├── collect_gvn_stats.py
-    │   ├── collect_gvn_stats.sh
-    │   ├── _collect_pass_times.py
-    │   ├── collect_pass_times.sh
+    │   ├── collect_pass_times.py
     │   ├── perf_bisect.sh
-    │   ├── _worklog.py
-    │   ├── worklog.sh
-    │   └── common.sh *
+    │   └── worklog.py
     ├── test-suite/ *             # LLVM test-suite + SPEC integration
     ├── toolchain/
     │   ├── clang *
@@ -298,7 +297,7 @@ The local branch must be pushed — uncommitted/unpushed changes are not present
 | Goal | Command |
 |------|---------|
 | Full bench run on remote | `./scripts/remote_run.sh myhost scripts/bench.sh` |
-| Collect stats on remote | `./scripts/remote_run.sh myhost scripts/collect_gvn_stats.sh` |
+| Collect stats on remote | `./scripts/remote_run.sh myhost scripts/collect_gvn_stats.py` |
 | Run with notification | `NOTIFY=1 NOTIFY_WEBHOOK=<url> ./scripts/remote_run.sh myhost scripts/bench.sh` |
 
 ### Remote Status
@@ -320,7 +319,7 @@ Shows a table of all runs (running / done / failed) across all hosts, or filtere
 
 The remote machine needs:
 - The repo cloned: `git clone https://github.com/ManuelJBrito/spec-llvm-bench`
-- `configure.sh` run to generate `scripts/common.sh` and toolchain symlinks
+- `configure.sh` run to generate `config.yaml` and toolchain symlinks
 - SSH key access from the local machine
 - `REMOTE_DIR` env var if the remote repo is not at `~/spec-llvm-bench`
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Persistent work log for tracking benchmark progress across machines.
 
-Usage: _worklog.py <worklog.json> <default_host> <variants.yaml> <builds_dir> <results_dir> <action> [args...]
+Usage: worklog.py <action> [args...]
 
 Actions:
   status [host]                    Show current state (all hosts if omitted)
@@ -267,17 +267,21 @@ def do_scan(worklog, worklog_path, host, builds_dir, results_dir):
 
 
 def main():
-    if len(sys.argv) < 7:
+    from config import load_config
+    cfg = load_config()
+
+    worklog_path = os.path.join(cfg['base'], 'results', 'worklog.json')
+    default_host = cfg['machine_name']
+    variants_yaml = os.path.join(cfg['base'], cfg['variants'])
+    builds_dir = cfg['build_root_base']
+    results_dir = cfg['results_root_base']
+
+    if len(sys.argv) < 2:
         print(__doc__, file=sys.stderr)
         sys.exit(1)
 
-    worklog_path = sys.argv[1]
-    default_host = sys.argv[2]
-    variants_yaml = sys.argv[3]
-    builds_dir = sys.argv[4]
-    results_dir = sys.argv[5]
-    action = sys.argv[6]
-    rest = sys.argv[7:]
+    action = sys.argv[1]
+    rest = sys.argv[2:]
 
     worklog = load_worklog(worklog_path)
     variant_ids = load_variant_ids(variants_yaml)

@@ -128,16 +128,12 @@ def main(builds_dir: Path, machine: str, variants_file: Path, output: Path):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 5:
-        print(
-            'Usage: _collect_pass_times.py <builds_dir> <machine> <variants.yaml> <output.csv>',
-            file=sys.stderr,
-        )
-        sys.exit(1)
+    from config import load_config
+    cfg = load_config()
 
     main(
-        Path(sys.argv[1]),
-        sys.argv[2],
-        Path(sys.argv[3]),
-        Path(sys.argv[4]),
+        Path(cfg['build_root_base']),
+        cfg['machine_name'],
+        Path(cfg['base']) / cfg['variants'],
+        Path(cfg['results_root_base'] + '-pass_times.csv'),
     )

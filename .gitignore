@@ -2,7 +2,7 @@
 /bin
 llvm-project
 test-suite
-/scripts/common.sh
+/config.yaml
 /toolchain
 /profiles/raw/
 /.planning/
