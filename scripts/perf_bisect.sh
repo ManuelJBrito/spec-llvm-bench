@@ -175,8 +175,9 @@ mapfile -t ALL_SRCS_TMP < <(
   cd "$BUILD_DIR"
   ninja -t commands "$NINJA_TARGET" 2>/dev/null \
     | grep -oP '[^ ]+\.(c|cpp|cc|C)\b' \
-    | sort -u \
-    | while read -r src; do basename "$src"; done
+    | grep 'benchspec/CPU/' \
+    | while read -r src; do basename "$src"; done \
+    | sort -u
   cd "$BASE"
 )
 ALL_SRCS_CSV=$(join_csv "${ALL_SRCS_TMP[@]}")
@@ -213,8 +214,7 @@ echo "  Total source files: ${#ALL_SRCS[@]}"
 
 map_funcs_to_files() {
   local -A func_to_file
-  for objfile in "$BUILD_DIR"/$SPEC_TARGET/*.o "$BUILD_DIR"/$SPEC_TARGET/**/*.o 2>/dev/null; do
-    [[ -f "$objfile" ]] || continue
+  while IFS= read -r objfile; do
     local obj_base
     obj_base=$(basename "$objfile" .o)
     for func in "${HOT_FUNCS[@]}"; do
@@ -222,7 +222,7 @@ map_funcs_to_files() {
         func_to_file["$func"]="${obj_base}"
       fi
     done
-  done
+  done < <(find "$BUILD_DIR/$SPEC_TARGET" -name '*.o' 2>/dev/null)
   printf '%s\n' "${func_to_file[@]}" | sort -u
 }
 
@@ -232,7 +232,7 @@ if [[ ${#HOT_FUNCS[@]} -gt 0 ]]; then
     SEARCH_SRCS=()
     for hs in "${HOT_SRCS[@]}"; do
       for as in "${ALL_SRCS[@]}"; do
-        [[ "${as%.*}" == "$hs" ]] && { SEARCH_SRCS+=("$as"); break; }
+        [[ "$as" == "$hs" ]] && { SEARCH_SRCS+=("$as"); break; }
       done
     done
     echo "  Hot-function source files: ${SEARCH_SRCS[*]}"
@@ -375,8 +375,7 @@ echo "--- Step 3: Function-level bisection ---"
 
 get_functions_for_files() {
   for src in "${IDENTIFIED_FILES[@]}"; do
-    local stem="${src%.*}"
-    for objfile in $(find "$BUILD_DIR/$SPEC_TARGET" \( -name "${stem}.o" -o -name "${stem}.cpp.o" -o -name "${stem}.c.o" \) 2>/dev/null); do
+    for objfile in $(find "$BUILD_DIR/$SPEC_TARGET" -name "${src}.o" 2>/dev/null); do
       nm --defined-only "$objfile" 2>/dev/null | awk '/ [Tt] / {print $3}' | grep -v '^\.'
     done
   done | sort -u
