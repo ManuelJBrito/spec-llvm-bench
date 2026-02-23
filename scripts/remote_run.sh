@@ -133,17 +133,24 @@ state_set_running
 
 EXIT_CODE=0
 
+# When running under nohup, stdout already goes to $LOG_FILE — tee would double it.
+if [ -t 1 ]; then
+    pipe_to_log() { tee -a "$LOG_FILE"; }
+else
+    pipe_to_log() { cat; }
+fi
+
 # 1. Pull latest on remote
 log "Pulling on ${HOST}:${REMOTE_DIR} ..."
 # shellcheck disable=SC2029
-ssh "$HOST" "cd ${REMOTE_DIR} && git pull --ff-only" 2>&1 | tee -a "$LOG_FILE" || EXIT_CODE=$?
+ssh "$HOST" "cd ${REMOTE_DIR} && git pull --ff-only" 2>&1 | pipe_to_log || EXIT_CODE=$?
 
 # 1.5. Rebuild LLVM (opt-in)
 if [ "$EXIT_CODE" -eq 0 ] && [ "${REBUILD_LLVM:-0}" = "1" ]; then
     log "Rebuilding LLVM on ${HOST} ..."
     # shellcheck disable=SC2029
     ssh "$HOST" "cd ${REMOTE_DIR}/llvm-project && git pull --ff-only && ninja -C build -j\$(nproc)" \
-        2>&1 | tee -a "$LOG_FILE" || EXIT_CODE=$?
+        2>&1 | pipe_to_log || EXIT_CODE=$?
 fi
 
 # 2. Run the script (only if pull succeeded)
@@ -152,8 +159,8 @@ if [ "$EXIT_CODE" -eq 0 ]; then
     # shellcheck disable=SC2029
     ARGS_STR=""
     [ "${#ARGS[@]}" -gt 0 ] && ARGS_STR=" $(printf '%q ' "${ARGS[@]}")"
-    ssh "$HOST" "cd ${REMOTE_DIR} && bash ${SCRIPT}${ARGS_STR}" \
-        2>&1 | tee -a "$LOG_FILE" || EXIT_CODE=$?
+    ssh "$HOST" "cd ${REMOTE_DIR} && ./${SCRIPT}${ARGS_STR}" \
+        2>&1 | pipe_to_log || EXIT_CODE=$?
 fi
 
 # 3. Rsync results back (opt-in)
