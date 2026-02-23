@@ -16,8 +16,6 @@ Options:
   --spec <path>          Full path to SPEC CPU2017
   --fresh                Wipe and rebuild existing state
   --common-flags         Common compiler flags
-  --remote-host <hostname>   Remote host cross-execution
-  --remote-build-dir <path>  Remote directory
   --toolchain <path>      CMake toolchain file (for cross-compilation)
   -h, --help             Show this help message and exit
 
@@ -38,8 +36,6 @@ RUNS=3
 MACHINE_NAME="$(hostname)"
 BUILD_DIR_NAME="builds"
 SPEC_PATH=""
-TEST_SUITE_REMOTE_HOST=""
-TEST_SUITE_REMOTE_BUILD_DIR=""
 TOOLCHAIN_FILE=""
 SKIP_LLVM=0
 
@@ -50,8 +46,6 @@ while [[ $# -gt 0 ]]; do
         --spec) SPEC_PATH="$2"; shift 2 ;;
         --fresh) FRESH=1; shift ;;
         --common-flags) COMMON_FLAGS="-O3 $2"; shift 2 ;;
-        --remote-host) TEST_SUITE_REMOTE_HOST="$2"; shift 2 ;;
-        --remote-build-dir) TEST_SUITE_REMOTE_BUILD_DIR="$2"; shift 2 ;;
         --toolchain) TOOLCHAIN_FILE="$2"; shift 2 ;;
         --skip-llvm) SKIP_LLVM=1; shift ;;
         -h|--help) print_help; exit 0 ;;
@@ -197,23 +191,6 @@ if [[ -n "$TEST_SUITE_REMOTE_BUILD_DIR" ]]; then
     fi
 fi
 
-if [[ -n "$TEST_SUITE_REMOTE_BUILD_DIR" && -z "$TEST_SUITE_REMOTE_HOST" ]]; then
-    print_error "--remote-build-dir requires --remote-host to be set"
-    exit 1
-fi
-
-if [[ -n "$TEST_SUITE_REMOTE_HOST" && -z "$TEST_SUITE_REMOTE_BUILD_DIR" ]]; then
-    echo "Warning: --remote-host set but --remote-build-dir not set, defaulting to mirroring local build dir"
-fi
-
-if [[ -n "$TEST_SUITE_REMOTE_HOST" && -n "$TEST_SUITE_REMOTE_BUILD_DIR" ]]; then
-    echo "Checking remote build directory exists on $TEST_SUITE_REMOTE_HOST..."
-    if ! ssh -o BatchMode=yes -o ConnectTimeout=5 "$TEST_SUITE_REMOTE_HOST" "[ -d '$TEST_SUITE_REMOTE_BUILD_DIR' ]"; then
-        print_error "Remote build parent directory does not exist or is not accessible: $TEST_SUITE_REMOTE_BUILD_DIR"
-        exit 1
-    fi
-fi
-
 if [[ -n "$TOOLCHAIN_FILE" ]]; then
     if [[ "$TOOLCHAIN_FILE" != /* ]]; then
         print_error "--toolchain must be an absolute path"
@@ -242,9 +219,6 @@ machine_name: $MACHINE_NAME
 base: $BENCH_INFRA_DIR
 build_root_base: $BUILD_ROOT_BASE
 results_root_base: $RESULTS_ROOT_BASE
-test_suite_remote_host: "$TEST_SUITE_REMOTE_HOST"
-test_suite_remote_build_dir: "$TEST_SUITE_REMOTE_BUILD_DIR"
-cmake_toolchain_file: "$TOOLCHAIN_FILE"
 cc: $CC
 cxx: $CXX
 common_flags: "$COMMON_FLAGS"

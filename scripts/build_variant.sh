@@ -147,13 +147,6 @@ if [[ -n "$RUN_UNDER" ]]; then
   CMAKE_ARGS+=(-DTEST_SUITE_RUN_UNDER="$RUN_UNDER")
 fi
 
-# Optional cross-compilation toolchain
-if [[ -n "$CMAKE_TOOLCHAIN_FILE" ]]; then
-  CMAKE_ARGS+=(
-    -DCMAKE_TOOLCHAIN_FILE="$CMAKE_TOOLCHAIN_FILE"
-  )
-fi
-
 cmake "${CMAKE_ARGS[@]}"
 
 cd "$BUILD_ROOT"
@@ -173,19 +166,4 @@ if [[ "$TIME_PASSES" == "1" ]]; then
   ninja -j"$NINJA_JOBS" "$NINJA_TARGET" 2>&1 | tee build-timepasses.log
 else
   ninja -j"$NINJA_JOBS" "$NINJA_TARGET" 2>&1 | tee build.log
-fi
-# Rsync the variant build to the remote host
-if [[ -n "$TEST_SUITE_REMOTE_HOST" && -n "$TEST_SUITE_REMOTE_BUILD_DIR" ]]; then
-    REMOTE_VARIANT_DIR="$TEST_SUITE_REMOTE_BUILD_DIR/$VARIANT"
-    echo "Syncing variant '$VARIANT' to $TEST_SUITE_REMOTE_HOST:$REMOTE_VARIANT_DIR ..."
-
-    # Ensure parent exists on remote
-    ssh -T -o BatchMode=yes -o ConnectTimeout=5 "$TEST_SUITE_REMOTE_HOST" \
-        "mkdir -p '$TEST_SUITE_REMOTE_BUILD_DIR'" &>/dev/null
-
-    echo "post test"
-    # Rsync the variant build
-    rsync -az --delete -e "ssh -T -o BatchMode=yes -o ConnectTimeout=5" \
-      "$BUILD_ROOT"/ "$TEST_SUITE_REMOTE_HOST":"$REMOTE_VARIANT_DIR"/
-    echo "Done -Syncing variant '$VARIANT' to $TEST_SUITE_REMOTE_HOST:$REMOTE_VARIANT_DIR ..."
 fi
