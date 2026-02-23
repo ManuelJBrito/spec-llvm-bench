@@ -16,6 +16,8 @@
 
 set -euo pipefail
 
+die() { echo "Error: $*" >&2; exit 1; }
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BASE="$(cd "$SCRIPT_DIR/.." && pwd)"
 
@@ -67,7 +69,7 @@ while [[ $# -gt 0 ]]; do
         --rebuild-llvm)  REBUILD_LLVM=1; shift ;;
         --fg)            BG=0; NOTIFY=0; shift ;;
         -h|--help)       usage ;;
-        *)               echo "Unknown option: $1" >&2; exit 1 ;;
+        *)               die "Unknown option: $1" ;;
     esac
 done
 
@@ -75,12 +77,11 @@ done
 
 HOST="${MACHINE_TO_HOST[$MACHINE]:-}"
 if [[ -z "$HOST" ]]; then
-    echo "Error: unknown machine '$MACHINE'" >&2
     echo "Valid machines:" >&2
     for m in "${!MACHINE_TO_HOST[@]}"; do
         printf "  %-16s -> %s\n" "$m" "${MACHINE_TO_HOST[$m]}" >&2
     done | sort >&2
-    exit 1
+    die "unknown machine '$MACHINE'"
 fi
 
 # ── Validate variant ─────────────────────────────────────────────────────────
@@ -88,22 +89,19 @@ fi
 GVN_BASE=$(yq ".[] | select(.id == \"$VARIANT\") | .gvn_base" "$BASE/variants.yaml" | jq -r .)
 
 if [[ -z "$GVN_BASE" || "$GVN_BASE" == "null" ]]; then
-    echo "Error: variant '$VARIANT' not found in variants.yaml" >&2
     echo "Available variants:" >&2
     yq '.[].id' "$BASE/variants.yaml" | jq -r . >&2
-    exit 1
+    die "variant '$VARIANT' not found in variants.yaml"
 fi
 
 if [[ "$GVN_BASE" == "NoGVN" ]]; then
-    echo "Error: variant '$VARIANT' has gvn_base=NoGVN — nothing to bisect" >&2
-    exit 1
+    die "variant '$VARIANT' has gvn_base=NoGVN — nothing to bisect"
 fi
 
 # ── Validate benchmark format ────────────────────────────────────────────────
 
 if [[ ! "$BENCHMARK" =~ ^[0-9]{3}\.[a-zA-Z0-9_]+_[rs]$ ]]; then
-    echo "Error: '$BENCHMARK' doesn't look like a SPEC benchmark (expected NNN.name_r or NNN.name_s)" >&2
-    exit 1
+    die "'$BENCHMARK' doesn't look like a SPEC benchmark (expected NNN.name_r or NNN.name_s)"
 fi
 
 # ── Summary ───────────────────────────────────────────────────────────────────

@@ -7,9 +7,7 @@
 #   1. Builds each variant with time_passes=1 (sequential -j1, -ftime-report)
 #   2. Runs collect_pass_times.sh to parse logs into a CSV
 
-set -eo pipefail
-
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$(dirname "$0")/common.sh"
 
 # Defaults
 RUN_TYPE="ref"
@@ -44,8 +42,7 @@ EOF
             exit 0
             ;;
         *)
-            echo "Unknown argument: $1" >&2
-            exit 1
+            die "Unknown argument: $1"
             ;;
     esac
 done

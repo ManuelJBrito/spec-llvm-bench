@@ -6,7 +6,7 @@
 # Reads results/logs/<host>/state.json for each known host and prints
 # a summary table. Pass a host name to filter to a single host.
 
-set -eo pipefail
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BASE="$(cd "$SCRIPT_DIR/.." && pwd)"

@@ -14,7 +14,9 @@
 #   RSYNC          Set to 1 to rsync results back after the run
 #   NOTIFY         Set to 1 to notify on completion via notify.sh
 
-set -eo pipefail
+set -euo pipefail
+
+die() { echo "Error: $*" >&2; exit 1; }
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BASE="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -119,8 +121,7 @@ fi
 
 UNPUSHED="$(git -C "$BASE" log '@{u}..' --oneline 2>/dev/null | wc -l || echo 0)"
 if [ "$UNPUSHED" -gt 0 ]; then
-    log "ERROR: $UNPUSHED unpushed commit(s) — push before running remotely."
-    exit 1
+    die "$UNPUSHED unpushed commit(s) — push before running remotely."
 fi
 
 # --- Main ---

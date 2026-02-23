@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -o pipefail
+source "$(dirname "$0")/common.sh"
 
 # Defaults
 MODE="all"
@@ -36,8 +36,7 @@ while [ "$#" -gt 0 ]; do
             exit 0
             ;;
         *)
-            echo "Unknown argument: $1"
-            exit 1
+            die "Unknown argument: $1"
             ;;
     esac
 done

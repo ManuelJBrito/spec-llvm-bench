@@ -7,7 +7,7 @@
 # Optionally set NOTIFY_SERVER to use a self-hosted instance (default: ntfy.sh).
 # -f FILE: attach FILE to the notification (sent as ntfy file attachment)
 
-set -eo pipefail
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CONF="${SCRIPT_DIR}/../conf/notify.conf"
