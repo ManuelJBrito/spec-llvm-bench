@@ -255,7 +255,7 @@ file_bisect() {
   local -a files=("$@")
 
   if [[ ${#files[@]} -le 3 ]]; then
-    echo "  >> Narrowed to ${#files[@]} file(s): ${files[*]}"
+    echo "  >> Narrowed to ${#files[@]} file(s): ${files[*]}" >&2
     printf '%s\n' "${files[@]}"
     return
   fi
@@ -267,21 +267,21 @@ file_bisect() {
   csv_a=$(join_csv "${set_a[@]}")
   csv_b=$(join_csv "${set_b[@]}")
 
-  echo "  Bisecting ${#files[@]} files: A=[${#set_a[@]}] B=[${#set_b[@]}]"
+  echo "  Bisecting ${#files[@]} files: A=[${#set_a[@]}] B=[${#set_b[@]}]" >&2
 
   # Skip A
-  echo -n "    Skip A (${#set_a[@]} files)... "
+  echo -n "    Skip A (${#set_a[@]} files)... " >&2
   build_benchmark "$csv_a" ""
   local time_a
   time_a=$(measure_time)
-  echo "${time_a}s"
+  echo "${time_a}s" >&2
 
   # Skip B
-  echo -n "    Skip B (${#set_b[@]} files)... "
+  echo -n "    Skip B (${#set_b[@]} files)... " >&2
   build_benchmark "$csv_b" ""
   local time_b
   time_b=$(measure_time)
-  echo "${time_b}s"
+  echo "${time_b}s" >&2
 
   STEP_COUNT=$((STEP_COUNT + 1))
   log_iteration "file" "$STEP_COUNT" "$csv_a" "$time_a" "$time_b"
@@ -289,23 +289,23 @@ file_bisect() {
   local diff_a diff_b
   diff_a=$(pct_diff "$time_a" "$BASELINE_TIME")
   diff_b=$(pct_diff "$time_b" "$BASELINE_TIME")
-  echo "    Diff A: ${diff_a}%  Diff B: ${diff_b}%  (vs baseline)"
+  echo "    Diff A: ${diff_a}%  Diff B: ${diff_b}%  (vs baseline)" >&2
 
   local sig_a=0 sig_b=0
   is_significant "$diff_a" && sig_a=1
   is_significant "$diff_b" && sig_b=1
 
   if [[ $sig_a -eq 1 && $sig_b -eq 0 ]]; then
-    echo "    -> GVN-sensitive code in set A"
+    echo "    -> GVN-sensitive code in set A" >&2
     file_bisect "${set_a[@]}"
   elif [[ $sig_a -eq 0 && $sig_b -eq 1 ]]; then
-    echo "    -> GVN-sensitive code in set B"
+    echo "    -> GVN-sensitive code in set B" >&2
     file_bisect "${set_b[@]}"
   elif [[ $sig_a -eq 1 && $sig_b -eq 1 ]]; then
-    echo "    -> Effect spans both sets, switching to removal mode"
+    echo "    -> Effect spans both sets, switching to removal mode" >&2
     removal_mode_files "${files[@]}"
   else
-    echo "    -> Neither set significant — noise? Reporting all."
+    echo "    -> Neither set significant — noise? Reporting all." >&2
     printf '%s\n' "${files[@]}"
   fi
 }
@@ -316,11 +316,11 @@ removal_mode_files() {
   local all_csv
   all_csv=$(join_csv "${files[@]}")
 
-  echo "  Removal mode: all ${#files[@]} files skipped, re-enabling one by one"
+  echo "  Removal mode: all ${#files[@]} files skipped, re-enabling one by one" >&2
   build_benchmark "$all_csv" ""
   local all_skip_time
   all_skip_time=$(measure_time)
-  echo "    All skipped: ${all_skip_time}s"
+  echo "    All skipped: ${all_skip_time}s" >&2
 
   for file in "${files[@]}"; do
     local remaining=()
@@ -328,16 +328,16 @@ removal_mode_files() {
       [[ "$f" != "$file" ]] && remaining+=("$f")
     done
 
-    echo -n "    Re-enable $file... "
+    echo -n "    Re-enable $file... " >&2
     build_benchmark "$(join_csv "${remaining[@]}")" ""
     local t
     t=$(measure_time)
     local diff
     diff=$(pct_diff "$all_skip_time" "$t")
-    echo "${t}s (${diff}%)"
+    echo "${t}s (${diff}%)" >&2
 
     if is_significant "$diff"; then
-      echo "      -> $file contributes"
+      echo "      -> $file contributes" >&2
       contributors+=("$file")
     fi
 
@@ -346,10 +346,10 @@ removal_mode_files() {
   done
 
   if [[ ${#contributors[@]} -gt 0 ]]; then
-    echo "  >> Contributors: ${contributors[*]}"
+    echo "  >> Contributors: ${contributors[*]}" >&2
     printf '%s\n' "${contributors[@]}"
   else
-    echo "  >> No individual contributor — collective effect"
+    echo "  >> No individual contributor — collective effect" >&2
     printf '%s\n' "${files[@]}"
   fi
 }
@@ -388,7 +388,6 @@ echo "  Functions in identified files: ${#ALL_FUNCS[@]}"
 if [[ ${#HOT_FUNCS[@]} -gt 0 ]]; then
   SEARCH_FUNCS=()
   for f in "${ALL_FUNCS[@]}"; do
-    local demangled
     demangled=$(c++filt "$f")
     for hf in "${HOT_FUNCS[@]}"; do
       if [[ "$demangled" == *"$hf"* ]]; then
@@ -411,7 +410,7 @@ func_bisect() {
   local -a funcs=("$@")
 
   if [[ ${#funcs[@]} -le 3 ]]; then
-    echo "  >> Narrowed to ${#funcs[@]} function(s): ${funcs[*]}"
+    echo "  >> Narrowed to ${#funcs[@]} function(s): ${funcs[*]}" >&2
     printf '%s\n' "${funcs[@]}"
     return
   fi
@@ -423,19 +422,19 @@ func_bisect() {
   csv_a=$(join_csv "${set_a[@]}")
   csv_b=$(join_csv "${set_b[@]}")
 
-  echo "  Bisecting ${#funcs[@]} functions: A=[${#set_a[@]}] B=[${#set_b[@]}]"
+  echo "  Bisecting ${#funcs[@]} functions: A=[${#set_a[@]}] B=[${#set_b[@]}]" >&2
 
-  echo -n "    Skip A (${#set_a[@]} funcs)... "
+  echo -n "    Skip A (${#set_a[@]} funcs)... " >&2
   build_benchmark "" "$csv_a"
   local time_a
   time_a=$(measure_time)
-  echo "${time_a}s"
+  echo "${time_a}s" >&2
 
-  echo -n "    Skip B (${#set_b[@]} funcs)... "
+  echo -n "    Skip B (${#set_b[@]} funcs)... " >&2
   build_benchmark "" "$csv_b"
   local time_b
   time_b=$(measure_time)
-  echo "${time_b}s"
+  echo "${time_b}s" >&2
 
   STEP_COUNT=$((STEP_COUNT + 1))
   log_iteration "func" "$STEP_COUNT" "$csv_a" "$time_a" "$time_b"
@@ -443,23 +442,23 @@ func_bisect() {
   local diff_a diff_b
   diff_a=$(pct_diff "$time_a" "$BASELINE_TIME")
   diff_b=$(pct_diff "$time_b" "$BASELINE_TIME")
-  echo "    Diff A: ${diff_a}%  Diff B: ${diff_b}%  (vs baseline)"
+  echo "    Diff A: ${diff_a}%  Diff B: ${diff_b}%  (vs baseline)" >&2
 
   local sig_a=0 sig_b=0
   is_significant "$diff_a" && sig_a=1
   is_significant "$diff_b" && sig_b=1
 
   if [[ $sig_a -eq 1 && $sig_b -eq 0 ]]; then
-    echo "    -> GVN-sensitive in set A"
+    echo "    -> GVN-sensitive in set A" >&2
     func_bisect "${set_a[@]}"
   elif [[ $sig_a -eq 0 && $sig_b -eq 1 ]]; then
-    echo "    -> GVN-sensitive in set B"
+    echo "    -> GVN-sensitive in set B" >&2
     func_bisect "${set_b[@]}"
   elif [[ $sig_a -eq 1 && $sig_b -eq 1 ]]; then
-    echo "    -> Effect spans both sets, removal mode"
+    echo "    -> Effect spans both sets, removal mode" >&2
     removal_mode_funcs "${funcs[@]}"
   else
-    echo "    -> Neither significant — noise? Reporting all."
+    echo "    -> Neither significant — noise? Reporting all." >&2
     printf '%s\n' "${funcs[@]}"
   fi
 }
@@ -470,11 +469,11 @@ removal_mode_funcs() {
   local all_csv
   all_csv=$(join_csv "${funcs[@]}")
 
-  echo "  Removal mode: all ${#funcs[@]} functions skipped, re-enabling one by one"
+  echo "  Removal mode: all ${#funcs[@]} functions skipped, re-enabling one by one" >&2
   build_benchmark "" "$all_csv"
   local all_skip_time
   all_skip_time=$(measure_time)
-  echo "    All skipped: ${all_skip_time}s"
+  echo "    All skipped: ${all_skip_time}s" >&2
 
   for func in "${funcs[@]}"; do
     local remaining=()
@@ -482,16 +481,16 @@ removal_mode_funcs() {
       [[ "$f" != "$func" ]] && remaining+=("$f")
     done
 
-    echo -n "    Re-enable $func... "
+    echo -n "    Re-enable $func... " >&2
     build_benchmark "" "$(join_csv "${remaining[@]}")"
     local t
     t=$(measure_time)
     local diff
     diff=$(pct_diff "$all_skip_time" "$t")
-    echo "${t}s (${diff}%)"
+    echo "${t}s (${diff}%)" >&2
 
     if is_significant "$diff"; then
-      echo "      -> $func contributes"
+      echo "      -> $func contributes" >&2
       contributors+=("$func")
     fi
 
@@ -500,10 +499,10 @@ removal_mode_funcs() {
   done
 
   if [[ ${#contributors[@]} -gt 0 ]]; then
-    echo "  >> Contributors: ${contributors[*]}"
+    echo "  >> Contributors: ${contributors[*]}" >&2
     printf '%s\n' "${contributors[@]}"
   else
-    echo "  >> No individual contributor — collective effect"
+    echo "  >> No individual contributor — collective effect" >&2
     printf '%s\n' "${funcs[@]}"
   fi
 }
