@@ -148,6 +148,20 @@ is_significant() {
 
 join_csv() { local IFS=','; echo "$*"; }
 
+# Validate that a candidate set reproduces the GVN effect.
+# Usage: validate_hot_set <skip_srcs> <skip_funcs> <label>
+# Returns 0 (significant) or 1 (not significant).
+validate_hot_set() {
+  local skip_srcs="$1" skip_funcs="$2" label="$3"
+  echo -n "  Validating ${label}... "
+  build_benchmark "$skip_srcs" "$skip_funcs"
+  local t diff
+  t=$(measure_time)
+  diff=$(pct_diff "$t" "$BASELINE_TIME")
+  echo "${t}s (${diff}%)"
+  is_significant "$diff"
+}
+
 # ── JSON logging ──────────────────────────────────────────────────────────────
 
 ITERATIONS_JSON="[]"
@@ -236,6 +250,14 @@ if [[ ${#HOT_FUNCS[@]} -gt 0 ]]; then
       done
     done
     echo "  Hot-function source files: ${SEARCH_SRCS[*]}"
+
+    # Validate: does skipping GVN on the hot set reproduce the effect?
+    if [[ ${#SEARCH_SRCS[@]} -gt 0 && ${#SEARCH_SRCS[@]} -lt ${#ALL_SRCS[@]} ]]; then
+      if ! validate_hot_set "$(join_csv "${SEARCH_SRCS[@]}")" "" "hot file set"; then
+        echo "  Hot set not significant, falling back to all ${#ALL_SRCS[@]} files."
+        SEARCH_SRCS=("${ALL_SRCS[@]}")
+      fi
+    fi
   else
     echo "  Could not map hot functions to files, using all."
     SEARCH_SRCS=("${ALL_SRCS[@]}")
@@ -398,6 +420,14 @@ if [[ ${#HOT_FUNCS[@]} -gt 0 ]]; then
   done
   if [[ ${#SEARCH_FUNCS[@]} -gt 0 ]]; then
     echo "  Hot functions in those files: ${SEARCH_FUNCS[*]}"
+
+    # Validate: does skipping GVN on the hot functions reproduce the effect?
+    if [[ ${#SEARCH_FUNCS[@]} -lt ${#ALL_FUNCS[@]} ]]; then
+      if ! validate_hot_set "" "$(join_csv "${SEARCH_FUNCS[@]}")" "hot functions"; then
+        echo "  Hot functions not significant, falling back to all ${#ALL_FUNCS[@]} functions."
+        SEARCH_FUNCS=("${ALL_FUNCS[@]}")
+      fi
+    fi
   else
     echo "  No hot functions matched, using all."
     SEARCH_FUNCS=("${ALL_FUNCS[@]}")
