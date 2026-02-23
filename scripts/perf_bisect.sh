@@ -97,7 +97,7 @@ build_benchmark() {
   local skip_srcs="${1:-}"
   local skip_funcs="${2:-}"
 
-  local extra_args=(no_clean=1)
+  local extra_args=()
   [[ -n "$skip_srcs" ]]  && extra_args+=(skip_gvn_srcs="$skip_srcs")
   [[ -n "$skip_funcs" ]] && extra_args+=(skip_gvn_funcs="$skip_funcs" gvn_func_skip_flag="$GVN_FUNC_SKIP_FLAG")
 
@@ -146,16 +146,6 @@ is_significant() {
   awk "BEGIN { exit !( sqrt(($1)^2) > $THRESHOLD ) }"
 }
 
-invalidate_objects() {
-  local srcs_csv="$1"
-  IFS=',' read -ra srcs <<< "$srcs_csv"
-  for src in "${srcs[@]}"; do
-    local stem="${src%.*}"
-    find "$BUILD_DIR/$SPEC_TARGET" \( -name "${stem}.o" -o -name "${stem}.c.o" -o -name "${stem}.cc.o" -o -name "${stem}.cpp.o" \) 2>/dev/null \
-      | xargs rm -f 2>/dev/null || true
-  done
-}
-
 join_csv() { local IFS=','; echo "$*"; }
 
 # ── JSON logging ──────────────────────────────────────────────────────────────
@@ -190,7 +180,6 @@ mapfile -t ALL_SRCS_TMP < <(
   cd "$BASE"
 )
 ALL_SRCS_CSV=$(join_csv "${ALL_SRCS_TMP[@]}")
-invalidate_objects "$ALL_SRCS_CSV"
 build_benchmark "$ALL_SRCS_CSV" ""
 NOGVN_TIME=$(measure_time)
 echo "${NOGVN_TIME}s"
@@ -199,7 +188,6 @@ TOTAL_DIFF=$(pct_diff "$NOGVN_TIME" "$BASELINE_TIME")
 echo "  Effect of disabling GVN: ${TOTAL_DIFF}%"
 
 # Restore baseline
-invalidate_objects "$ALL_SRCS_CSV"
 build_benchmark "" ""
 
 if ! is_significant "$TOTAL_DIFF"; then
@@ -282,7 +270,6 @@ file_bisect() {
   echo "  Bisecting ${#files[@]} files: A=[${#set_a[@]}] B=[${#set_b[@]}]"
 
   # Skip A
-  invalidate_objects "$csv_a,$csv_b"
   echo -n "    Skip A (${#set_a[@]} files)... "
   build_benchmark "$csv_a" ""
   local time_a
@@ -290,7 +277,6 @@ file_bisect() {
   echo "${time_a}s"
 
   # Skip B
-  invalidate_objects "$csv_a,$csv_b"
   echo -n "    Skip B (${#set_b[@]} files)... "
   build_benchmark "$csv_b" ""
   local time_b
@@ -331,7 +317,6 @@ removal_mode_files() {
   all_csv=$(join_csv "${files[@]}")
 
   echo "  Removal mode: all ${#files[@]} files skipped, re-enabling one by one"
-  invalidate_objects "$all_csv"
   build_benchmark "$all_csv" ""
   local all_skip_time
   all_skip_time=$(measure_time)
@@ -343,7 +328,6 @@ removal_mode_files() {
       [[ "$f" != "$file" ]] && remaining+=("$f")
     done
 
-    invalidate_objects "$all_csv"
     echo -n "    Re-enable $file... "
     build_benchmark "$(join_csv "${remaining[@]}")" ""
     local t
@@ -382,7 +366,6 @@ echo ""
 echo "=== File result: ${IDENTIFIED_FILES[*]} ==="
 
 # Restore
-invalidate_objects "$(join_csv "${SEARCH_SRCS[@]}")"
 build_benchmark "" ""
 
 # ── Step 3: Function bisection ────────────────────────────────────────────────
@@ -438,14 +421,12 @@ func_bisect() {
 
   echo "  Bisecting ${#funcs[@]} functions: A=[${#set_a[@]}] B=[${#set_b[@]}]"
 
-  invalidate_objects "$(join_csv "${IDENTIFIED_FILES[@]}")"
   echo -n "    Skip A (${#set_a[@]} funcs)... "
   build_benchmark "" "$csv_a"
   local time_a
   time_a=$(measure_time)
   echo "${time_a}s"
 
-  invalidate_objects "$(join_csv "${IDENTIFIED_FILES[@]}")"
   echo -n "    Skip B (${#set_b[@]} funcs)... "
   build_benchmark "" "$csv_b"
   local time_b
@@ -486,7 +467,6 @@ removal_mode_funcs() {
   all_csv=$(join_csv "${funcs[@]}")
 
   echo "  Removal mode: all ${#funcs[@]} functions skipped, re-enabling one by one"
-  invalidate_objects "$(join_csv "${IDENTIFIED_FILES[@]}")"
   build_benchmark "" "$all_csv"
   local all_skip_time
   all_skip_time=$(measure_time)
@@ -498,7 +478,6 @@ removal_mode_funcs() {
       [[ "$f" != "$func" ]] && remaining+=("$f")
     done
 
-    invalidate_objects "$(join_csv "${IDENTIFIED_FILES[@]}")"
     echo -n "    Re-enable $func... "
     build_benchmark "" "$(join_csv "${remaining[@]}")"
     local t
@@ -539,7 +518,6 @@ echo "=== Function result: ${IDENTIFIED_FUNCS[*]} ==="
 # ── Write results ─────────────────────────────────────────────────────────────
 
 # Restore clean build
-invalidate_objects "$(join_csv "${IDENTIFIED_FILES[@]}")"
 build_benchmark "" ""
 
 jq -n \
