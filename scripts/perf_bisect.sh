@@ -218,12 +218,12 @@ map_funcs_to_files() {
     local obj_base
     obj_base=$(basename "$objfile" .o)
     for func in "${HOT_FUNCS[@]}"; do
-      if nm --defined-only "$objfile" 2>/dev/null | grep -qw "$func"; then
+      if nm -C --defined-only "$objfile" 2>/dev/null | grep -qw "$func"; then
         func_to_file["$func"]="${obj_base}"
       fi
     done
   done < <(find "$BUILD_DIR/$SPEC_TARGET" -name '*.o' 2>/dev/null)
-  printf '%s\n' "${func_to_file[@]}" | sort -u
+  [[ ${#func_to_file[@]} -gt 0 ]] && printf '%s\n' "${func_to_file[@]}" | sort -u
 }
 
 if [[ ${#HOT_FUNCS[@]} -gt 0 ]]; then
@@ -384,12 +384,17 @@ get_functions_for_files() {
 mapfile -t ALL_FUNCS < <(get_functions_for_files)
 echo "  Functions in identified files: ${#ALL_FUNCS[@]}"
 
-# Intersect with hot functions if available
+# Intersect with hot functions if available (demangle for comparison)
 if [[ ${#HOT_FUNCS[@]} -gt 0 ]]; then
   SEARCH_FUNCS=()
   for f in "${ALL_FUNCS[@]}"; do
+    local demangled
+    demangled=$(c++filt "$f")
     for hf in "${HOT_FUNCS[@]}"; do
-      [[ "$f" == "$hf" ]] && { SEARCH_FUNCS+=("$f"); break; }
+      if [[ "$demangled" == *"$hf"* ]]; then
+        SEARCH_FUNCS+=("$f")
+        break
+      fi
     done
   done
   if [[ ${#SEARCH_FUNCS[@]} -gt 0 ]]; then
