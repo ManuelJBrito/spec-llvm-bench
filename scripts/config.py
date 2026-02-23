@@ -9,3 +9,12 @@ _CONFIG = Path(__file__).resolve().parent.parent / "config.yaml"
 def load_config() -> dict:
     with open(_CONFIG) as f:
         return yaml.safe_load(f)
+
+
+def load_variants(variants_file: Path | None = None) -> dict[str, dict]:
+    """Load variants.yaml and return a dict keyed by variant ID."""
+    if variants_file is None:
+        cfg = load_config()
+        variants_file = _CONFIG.parent / cfg["variants"]
+    with open(variants_file) as f:
+        return {v["id"]: v for v in yaml.safe_load(f)}

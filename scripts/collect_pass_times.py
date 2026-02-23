@@ -15,7 +15,6 @@ CSV schema: benchmark,machine,variant,regalloc,gvn_time_s,total_opt_time_s,gvn_p
 import csv
 import re
 import sys
-import yaml
 from collections import defaultdict
 from pathlib import Path
 
@@ -86,9 +85,8 @@ def parse_timepasses_log(log_path: Path) -> dict:
 
 
 def main(builds_dir: Path, machine: str, variants_file: Path, output: Path):
-    with open(variants_file) as f:
-        variants_data = yaml.safe_load(f)
-    variants = {v['id']: v for v in variants_data}
+    from config import load_variants
+    variants = load_variants(variants_file)
 
     rows = []
 

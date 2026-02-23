@@ -10,10 +10,10 @@ Usage:
 
 import csv
 import json
-import re
 import sys
-import yaml
 from pathlib import Path
+
+from util import RUN_RE, strip_name
 
 SCHEMA = [
     "benchmark", "machine", "gvn_base", "simpl", "pre", "assumption",
@@ -24,20 +24,10 @@ SCHEMA = [
 # We collect all gvn.* and newgvn.* counters.
 GVN_STAT_PREFIXES = ("gvn.", "newgvn.")
 
-RUN_RE = re.compile(r"_results_(\d+)\.json$")
-
-
-def strip_name(name: str) -> str:
-    name = name.split("/")[-1]
-    if name.endswith(".test"):
-        name = name[:-5]
-    return name
-
 
 def main(builds_dir: Path, machine: str, variants_file: Path, output: Path):
-    with open(variants_file) as f:
-        variants_data = yaml.safe_load(f)
-    variants: dict[str, dict] = {v["id"]: v for v in variants_data}
+    from config import load_variants
+    variants = load_variants(variants_file)
 
     rows: list[tuple] = []
 
@@ -96,10 +86,9 @@ def main(builds_dir: Path, machine: str, variants_file: Path, output: Path):
 if __name__ == "__main__":
     from config import load_config
     cfg = load_config()
-
     main(
-        Path(cfg['build_root_base']),
-        cfg['machine_name'],
-        Path(cfg['base']) / cfg['variants'],
-        Path(cfg['results_root_base'] + '-stats.csv'),
+        Path(cfg["build_root_base"]),
+        cfg["machine_name"],
+        Path(cfg["base"]) / cfg["variants"],
+        Path(cfg["results_root_base"] + "-stats.csv"),
     )
