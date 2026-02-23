@@ -183,14 +183,6 @@ CC="${TOOLCHAIN_PATH}/clang"
 CXX="${CC}++"
 LIT="$INSTALL_PREFIX/bin/llvm-lit"
 
-# === Remote build dir === 
-if [[ -n "$TEST_SUITE_REMOTE_BUILD_DIR" ]]; then
-    if [[ "$TEST_SUITE_REMOTE_BUILD_DIR" != /* ]]; then
-        print_error "--remote-build-dir must be an absolute path"
-        exit 1
-    fi
-fi
-
 if [[ -n "$TOOLCHAIN_FILE" ]]; then
     if [[ "$TOOLCHAIN_FILE" != /* ]]; then
         print_error "--toolchain must be an absolute path"
