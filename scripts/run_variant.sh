@@ -8,7 +8,7 @@ jobs="${3:-1}"
 TASKSET=(taskset -c 1)
 
 build_base=$(basename "$build")
-cd "$build" || { echo "Failed to cd into $build"; exit 1; }
+cd "$build" || die "Failed to cd into $build"
 mkdir -p results
 
 # Loop to run lit multiple times

@@ -71,8 +71,7 @@ fi
 echo "=== Phase 3: merge ==="
 mapfile -t PROFRAW_FILES < <(find "$PROFRAW_DIR" -name "*.profraw" -size +0)
 if [[ ${#PROFRAW_FILES[@]} -eq 0 ]]; then
-    echo "No profraw files to merge." >&2
-    exit 1
+    die "No profraw files to merge."
 fi
 "$LLVM_PROFDATA" merge --sample \
     --output="$PROFILES_ROOT/raw/merged.profdata" \

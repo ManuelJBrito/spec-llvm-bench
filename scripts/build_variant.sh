@@ -87,8 +87,7 @@ for arg in "$@"; do
       GVN_FUNC_SKIP_FLAG="${arg#*=}"
       ;;
     *)
-      echo "Unknown argument: $arg" >&2
-      exit 1
+      die "Unknown argument: $arg"
       ;;
   esac
 done
@@ -103,8 +102,7 @@ VARIANT_FLAGS=$(
 )
 
 if [[ -z "$VARIANT_FLAGS" ]]; then
-  echo "Variant not found: $VARIANT" >&2
-  exit 1
+  die "Variant not found: $VARIANT"
 fi
 
 CFLAGS="$COMMON_FLAGS $VARIANT_FLAGS"

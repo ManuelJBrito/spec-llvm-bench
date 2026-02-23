@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 source "$(dirname "$0")/common.sh"
 
-set -euo pipefail
-
 # === Configuration ===
 VARIANT="${VARIANT:-NewGVN-opt-s1-p0-greedy}"
 TOP_N="${TOP_N:-20}"
@@ -50,7 +48,7 @@ while [[ $# -gt 0 ]]; do
     --skip-build)  SKIP_BUILD=1; shift ;;
     --run-type)    RUN_TYPE="$2"; shift 2 ;;
     -h|--help)     usage; exit 0 ;;
-    *)             echo "Unknown: $1" >&2; usage; exit 1 ;;
+    *)             usage; die "Unknown argument: $1" ;;
   esac
 done
 

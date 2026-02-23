@@ -22,7 +22,6 @@
 #
 # Run on multiple variants and compare results to understand GVN differences.
 
-set -euo pipefail
 source "$(dirname "$0")/common.sh"
 
 # ── Args ──────────────────────────────────────────────────────────────────────
@@ -38,7 +37,7 @@ for arg in "$@"; do
   case "$arg" in
     runs=*)      RUNS="${arg#*=}" ;;
     threshold=*) THRESHOLD="${arg#*=}" ;;
-    *)           echo "Unknown argument: $arg" >&2; exit 1 ;;
+    *)           die "Unknown argument: $arg" ;;
   esac
 done
 
@@ -57,15 +56,14 @@ mkdir -p "$OUTPUT_DIR"
 GVN_BASE=$(yq ".[] | select(.id == \"$VARIANT\") | .gvn_base" "$BASE/$VARIANTS" | jq -r .)
 
 if [[ -z "$GVN_BASE" || "$GVN_BASE" == "null" ]]; then
-  echo "Error: variant '$VARIANT' not found or has no gvn_base" >&2
-  exit 1
+  die "variant '$VARIANT' not found or has no gvn_base"
 fi
 
 case "$GVN_BASE" in
   GVNPRE)  GVN_FUNC_SKIP_FLAG="skip-gvn-for-funcs" ;;
   NewGVN)  GVN_FUNC_SKIP_FLAG="skip-newgvn-for-funcs" ;;
-  NoGVN)   echo "Error: variant has no GVN to bisect (gvn_base=NoGVN)" >&2; exit 1 ;;
-  *)       echo "Error: unsupported gvn_base '$GVN_BASE'" >&2; exit 1 ;;
+  NoGVN)   die "variant has no GVN to bisect (gvn_base=NoGVN)" ;;
+  *)       die "unsupported gvn_base '$GVN_BASE'" ;;
 esac
 
 # ── Find SPEC target path ────────────────────────────────────────────────────
@@ -78,8 +76,7 @@ find_spec_target() {
       return
     fi
   done
-  echo "Error: benchmark '$bench' not found in test-suite" >&2
-  exit 1
+  die "benchmark '$bench' not found in test-suite"
 }
 
 SPEC_TARGET=$(find_spec_target "$BENCHMARK")
