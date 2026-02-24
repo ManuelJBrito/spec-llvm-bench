@@ -103,10 +103,9 @@ build_benchmark() {
 
   if ! "$BASE/scripts/build_variant.sh" "$VARIANT" ref "$SPEC_SUITE/$BENCHMARK" "${extra_args[@]}" \
       >> "$BUILD_LOG" 2>&1; then
-    echo "FAILED (see $BUILD_LOG)" >&2
-    echo "  Last 10 lines:" >&2
+    echo "Last 10 lines of build log:" >&2
     tail -10 "$BUILD_LOG" >&2
-    return 1
+    die "build failed (see $BUILD_LOG)"
   fi
 }
 
@@ -118,10 +117,9 @@ measure_time() {
   for ((i=0; i<RUNS; i++)); do
     if ! taskset -c 1 "$LIT" -j1 "$SPEC_TARGET" \
         -o "results/bisect_run_${i}.json" >> "$BUILD_LOG" 2>&1; then
-      echo "FAILED (lit run $i failed, see $BUILD_LOG)" >&2
       tail -10 "$BUILD_LOG" >&2
       cd "$BASE"
-      echo "ERROR"; return 1
+      die "lit run $i failed (see $BUILD_LOG)"
     fi
 
     local t
@@ -132,8 +130,8 @@ measure_time() {
   cd "$BASE"
 
   if [[ ${#times[@]} -eq 0 ]]; then
-    echo "ERROR (no valid times collected)" >&2
-    echo "ERROR"; return 1
+    cd "$BASE"
+    die "no valid times collected"
   fi
   printf '%s\n' "${times[@]}" | sort -n | awk '{a[NR]=$1} END{print a[int((NR+1)/2)]}'
 }
@@ -276,7 +274,7 @@ STEP_COUNT=0
 file_bisect() {
   local -a files=("$@")
 
-  if [[ ${#files[@]} -le 3 ]]; then
+  if [[ ${#files[@]} -le 1 ]]; then
     echo "  >> Narrowed to ${#files[@]} file(s): ${files[*]}" >&2
     printf '%s\n' "${files[@]}"
     return
@@ -377,7 +375,7 @@ removal_mode_files() {
 }
 
 IDENTIFIED_FILES=()
-if [[ ${#SEARCH_SRCS[@]} -le 3 ]]; then
+if [[ ${#SEARCH_SRCS[@]} -le 1 ]]; then
   IDENTIFIED_FILES=("${SEARCH_SRCS[@]}")
   echo "  Only ${#SEARCH_SRCS[@]} file(s), skipping file bisection."
 else
@@ -439,7 +437,7 @@ fi
 func_bisect() {
   local -a funcs=("$@")
 
-  if [[ ${#funcs[@]} -le 3 ]]; then
+  if [[ ${#funcs[@]} -le 1 ]]; then
     echo "  >> Narrowed to ${#funcs[@]} function(s): ${funcs[*]}" >&2
     printf '%s\n' "${funcs[@]}"
     return
@@ -538,7 +536,7 @@ removal_mode_funcs() {
 }
 
 IDENTIFIED_FUNCS=()
-if [[ ${#SEARCH_FUNCS[@]} -le 3 ]]; then
+if [[ ${#SEARCH_FUNCS[@]} -le 1 ]]; then
   IDENTIFIED_FUNCS=("${SEARCH_FUNCS[@]}")
   echo "  Only ${#SEARCH_FUNCS[@]} function(s), skipping function bisection."
 else
