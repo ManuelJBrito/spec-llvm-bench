@@ -614,6 +614,11 @@ else
 echo ""
 echo "--- Step 4: Instruction-level bisection ---"
 
+# Ensure objects exist (may be missing after resume + fresh configure)
+echo -n "  Building baseline for object inspection... "
+build_benchmark "" ""
+echo "done"
+
 # Helper: map a function (mangled name) to its source file basename.
 get_src_for_func() {
   local func="$1"
