@@ -32,11 +32,13 @@ shift 2
 
 RUNS=3
 THRESHOLD=2
+RESUME=0
 
 for arg in "$@"; do
   case "$arg" in
     runs=*)      RUNS="${arg#*=}" ;;
     threshold=*) THRESHOLD="${arg#*=}" ;;
+    resume=*)    RESUME="${arg#*=}" ;;
     *)           die "Unknown argument: $arg" ;;
   esac
 done
@@ -48,6 +50,7 @@ BUILD_DIR="$BASE/$BUILD_ROOT_BASE/$VARIANT"
 OUTPUT_DIR="$BASE/results/perf_analysis/$BENCHMARK"
 OUTPUT_JSON="$OUTPUT_DIR/bisect-${VARIANT}.json"
 BUILD_LOG="$OUTPUT_DIR/bisect-${VARIANT}-build.log"
+CHECKPOINT="$OUTPUT_DIR/bisect-${VARIANT}-state.json"
 
 mkdir -p "$OUTPUT_DIR"
 
@@ -171,6 +174,45 @@ log_iteration() {
     --arg skip_set "$skip_set" --arg time "$time_val" --arg comp "$complement_time" \
     '. + [{"phase": $phase, "step": ($step), "skip_set": $skip_set, "time": $time, "complement_time": $comp}]')
 }
+
+IDENTIFIED_FILES=()
+IDENTIFIED_FUNCS=()
+
+save_checkpoint() {
+  local phase="$1"
+  jq -n \
+    --arg phase "$phase" \
+    --arg baseline "${BASELINE_TIME:-}" \
+    --arg nogvn "${NOGVN_TIME:-}" \
+    --arg total_diff "${TOTAL_DIFF:-}" \
+    --argjson all_srcs "$(printf '%s\n' "${ALL_SRCS[@]}" 2>/dev/null | jq -R . | jq -s .)" \
+    --argjson files "$(printf '%s\n' "${IDENTIFIED_FILES[@]}" 2>/dev/null | jq -R . | jq -s .)" \
+    --argjson funcs "$(printf '%s\n' "${IDENTIFIED_FUNCS[@]}" 2>/dev/null | jq -R . | jq -s .)" \
+    '{phase: $phase, baseline_time: $baseline, nogvn_time: $nogvn, total_diff: $total_diff,
+      all_srcs: $all_srcs, identified_files: $files, identified_funcs: $funcs}' \
+    > "$CHECKPOINT"
+}
+
+# ── Resume ────────────────────────────────────────────────────────────────────
+
+RESUMED_PHASE=""
+if [[ "$RESUME" -eq 1 && -f "$CHECKPOINT" ]]; then
+  RESUMED_PHASE=$(jq -r .phase "$CHECKPOINT")
+  echo "  Resuming from checkpoint: phase=$RESUMED_PHASE"
+  BASELINE_TIME=$(jq -r .baseline_time "$CHECKPOINT")
+  NOGVN_TIME=$(jq -r .nogvn_time "$CHECKPOINT")
+  TOTAL_DIFF=$(jq -r .total_diff "$CHECKPOINT")
+  mapfile -t ALL_SRCS < <(jq -r '.all_srcs[]' "$CHECKPOINT")
+  ALL_SRCS_CSV=$(join_csv "${ALL_SRCS[@]}")
+  if [[ "$RESUMED_PHASE" == "files_done" || "$RESUMED_PHASE" == "complete" ]]; then
+    mapfile -t IDENTIFIED_FILES < <(jq -r '.identified_files[]' "$CHECKPOINT")
+  fi
+  if [[ "$RESUMED_PHASE" == "complete" ]]; then
+    mapfile -t IDENTIFIED_FUNCS < <(jq -r '.identified_funcs[]' "$CHECKPOINT")
+  fi
+fi
+
+if [[ "$RESUMED_PHASE" != "files_done" && "$RESUMED_PHASE" != "complete" ]]; then
 
 # ── Step 0: Baseline ─────────────────────────────────────────────────────────
 
@@ -374,7 +416,6 @@ removal_mode_files() {
   fi
 }
 
-IDENTIFIED_FILES=()
 if [[ ${#SEARCH_SRCS[@]} -le 1 ]]; then
   IDENTIFIED_FILES=("${SEARCH_SRCS[@]}")
   echo "  Only ${#SEARCH_SRCS[@]} file(s), skipping file bisection."
@@ -387,6 +428,12 @@ echo "=== File result: ${IDENTIFIED_FILES[*]} ==="
 
 # Restore
 build_benchmark "" ""
+
+save_checkpoint "files_done"
+
+fi  # end resume guard (steps 0-2)
+
+if [[ "$RESUMED_PHASE" != "complete" ]]; then
 
 # ── Step 3: Function bisection ────────────────────────────────────────────────
 
@@ -546,6 +593,10 @@ fi
 echo ""
 echo "=== Function result: ${IDENTIFIED_FUNCS[*]} ==="
 
+save_checkpoint "complete"
+
+fi  # end resume guard (step 3)
+
 # ── Write results ─────────────────────────────────────────────────────────────
 
 # Restore clean build
@@ -572,6 +623,8 @@ jq -n \
     functions_identified: $funcs,
     iterations: $iterations
   }' > "$OUTPUT_JSON"
+
+rm -f "$CHECKPOINT"
 
 echo ""
 echo "=== Done ==="
