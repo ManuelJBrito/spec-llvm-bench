@@ -764,7 +764,6 @@ for target_func in "${IDENTIFIED_FUNCS[@]}"; do
       time_hi=$(measure_time)
     fi
 
-    local diff_lo diff_hi
     diff_lo=$(pct_diff "$time_lo" "$time_all")
     diff_hi=$(pct_diff "$time_hi" "$time_all")
     step4_step=$((step4_step + 1))
@@ -778,7 +777,7 @@ for target_func in "${IDENTIFIED_FUNCS[@]}"; do
       --arg thi "$time_hi" --arg dhi "$diff_hi" \
       '. + [{"step": $step, "mid": $mid, "time_lo": ($tlo|tonumber), "diff_lo": ($dlo|tonumber), "time_hi": ($thi|tonumber), "diff_hi": ($dhi|tonumber)}]')
 
-    local sig_lo=0 sig_hi=0
+    sig_lo=0; sig_hi=0
     is_significant "$diff_lo" && sig_lo=1
     is_significant "$diff_hi" && sig_hi=1
 
