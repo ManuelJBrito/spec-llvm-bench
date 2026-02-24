@@ -18,7 +18,8 @@
 #   2. Seeds the search with hot functions from profiling data
 #   3. Binary-searches on source files by disabling GVN for subsets
 #   4. Binary-searches on functions within identified files
-#   5. When both halves show an effect, switches to removal mode
+#   5. Binary-searches on individual GVN eliminations via debug counters
+#   6. When both halves show an effect, switches to removal mode
 #
 # Run on multiple variants and compare results to understand GVN differences.
 
@@ -63,8 +64,8 @@ if [[ -z "$GVN_BASE" || "$GVN_BASE" == "null" ]]; then
 fi
 
 case "$GVN_BASE" in
-  GVNPRE)  GVN_FUNC_SKIP_FLAG="skip-gvn-for-funcs" ;;
-  NewGVN)  GVN_FUNC_SKIP_FLAG="skip-newgvn-for-funcs" ;;
+  GVNPRE)  GVN_FUNC_SKIP_FLAG="skip-gvn-for-funcs"; COUNTER_NAME="gvn-eliminate" ;;
+  NewGVN)  GVN_FUNC_SKIP_FLAG="skip-newgvn-for-funcs"; COUNTER_NAME="newgvn-eliminate" ;;
   NoGVN)   die "variant has no GVN to bisect (gvn_base=NoGVN)" ;;
   *)       die "unsupported gvn_base '$GVN_BASE'" ;;
 esac
@@ -166,6 +167,7 @@ validate_hot_set() {
 # ── JSON logging ──────────────────────────────────────────────────────────────
 
 ITERATIONS_JSON="[]"
+ELIMINATION_BISECT_JSON="{}"
 
 log_iteration() {
   local phase="$1" step="$2" skip_set="$3" time_val="$4" complement_time="${5:-null}"
@@ -204,15 +206,15 @@ if [[ "$RESUME" -eq 1 && -f "$CHECKPOINT" ]]; then
   TOTAL_DIFF=$(jq -r .total_diff "$CHECKPOINT")
   mapfile -t ALL_SRCS < <(jq -r '.all_srcs[]' "$CHECKPOINT")
   ALL_SRCS_CSV=$(join_csv "${ALL_SRCS[@]}")
-  if [[ "$RESUMED_PHASE" == "files_done" || "$RESUMED_PHASE" == "complete" ]]; then
+  if [[ "$RESUMED_PHASE" == "files_done" || "$RESUMED_PHASE" == "funcs_done" || "$RESUMED_PHASE" == "complete" ]]; then
     mapfile -t IDENTIFIED_FILES < <(jq -r '.identified_files[]' "$CHECKPOINT")
   fi
-  if [[ "$RESUMED_PHASE" == "complete" ]]; then
+  if [[ "$RESUMED_PHASE" == "funcs_done" || "$RESUMED_PHASE" == "complete" ]]; then
     mapfile -t IDENTIFIED_FUNCS < <(jq -r '.identified_funcs[]' "$CHECKPOINT")
   fi
 fi
 
-if [[ "$RESUMED_PHASE" != "files_done" && "$RESUMED_PHASE" != "complete" ]]; then
+if [[ "$RESUMED_PHASE" != "files_done" && "$RESUMED_PHASE" != "funcs_done" && "$RESUMED_PHASE" != "complete" ]]; then
 
 # ── Step 0: Baseline ─────────────────────────────────────────────────────────
 
@@ -433,7 +435,7 @@ save_checkpoint "files_done"
 
 fi  # end resume guard (steps 0-2)
 
-if [[ "$RESUMED_PHASE" != "complete" ]]; then
+if [[ "$RESUMED_PHASE" != "funcs_done" && "$RESUMED_PHASE" != "complete" ]]; then
 
 # ── Step 3: Function bisection ────────────────────────────────────────────────
 
@@ -593,9 +595,194 @@ fi
 echo ""
 echo "=== Function result: ${IDENTIFIED_FUNCS[*]} ==="
 
-save_checkpoint "complete"
+save_checkpoint "funcs_done"
 
 fi  # end resume guard (step 3)
+
+if [[ "$RESUMED_PHASE" != "complete" ]]; then
+
+# ── Step 4: Instruction-level bisection (debug counters) ─────────────────────
+
+ELIMINATION_BISECT_JSON="{}"
+
+if [[ "$GVN_BASE" == "NewGVN" ]]; then
+  echo ""
+  echo "--- Step 4: Instruction bisection ---"
+  echo "  Skipped: newgvn-eliminate debug counter not wired in NewGVN. (LLVM TODO)"
+else
+
+echo ""
+echo "--- Step 4: Instruction-level bisection ---"
+
+# Helper: map a function (mangled name) to its source file basename.
+get_src_for_func() {
+  local func="$1"
+  for src in "${IDENTIFIED_FILES[@]}"; do
+    local base="${src%.c*}"
+    for objfile in $(find "$BUILD_DIR/$SPEC_TARGET" -name "${base}.o" 2>/dev/null); do
+      if nm --defined-only "$objfile" 2>/dev/null | awk '/ [Tt] /' | grep -qw "$func"; then
+        echo "$src"
+        return
+      fi
+    done
+  done
+}
+
+# Helper: get all defined functions in a source file's object.
+get_funcs_in_src() {
+  local src="$1" base="${1%.c*}"
+  for objfile in $(find "$BUILD_DIR/$SPEC_TARGET" -name "${base}.o" 2>/dev/null); do
+    nm --defined-only "$objfile" 2>/dev/null | awk '/ [Tt] / {print $3}' | grep -v '^\.'
+  done | sort -u
+}
+
+# Helper: build with debug counter gating N eliminations for the target function.
+# All other functions in the source file are skipped via skip_gvn_funcs.
+# N=0 means the target is also skipped (zero eliminations).
+# Optional 5th arg: path to capture -print-debug-counter output.
+build_with_counter() {
+  local n="$1" skip_csv="$2" src="$3" target_func="$4"
+  local counter_outfile="${5:-}"
+
+  local extra_args=()
+
+  if [[ $n -eq 0 ]]; then
+    # Skip target function too — zero eliminations
+    local all_skip="$target_func"
+    [[ -n "$skip_csv" ]] && all_skip="${skip_csv},${target_func}"
+    extra_args+=(skip_gvn_funcs="$all_skip" gvn_func_skip_flag="$GVN_FUNC_SKIP_FLAG")
+  else
+    extra_args+=(skip_gvn_funcs="$skip_csv" gvn_func_skip_flag="$GVN_FUNC_SKIP_FLAG")
+    extra_args+=(debug_counter="${COUNTER_NAME}=0-$((n-1))" debug_counter_src="$src")
+    [[ -n "$counter_outfile" ]] && extra_args+=(debug_counter_outfile="$counter_outfile")
+  fi
+
+  if ! "$BASE/scripts/build_variant.sh" "$VARIANT" ref "$SPEC_SUITE/$BENCHMARK" "${extra_args[@]}" \
+      >> "$BUILD_LOG" 2>&1; then
+    echo "Last 10 lines of build log:" >&2
+    tail -10 "$BUILD_LOG" >&2
+    die "build failed (see $BUILD_LOG)"
+  fi
+}
+
+# Helper: extract total shouldExecute() call count from -print-debug-counter output file.
+# Output format: "counter-name : {N,range}"  →  extracts N.
+get_counter_total() {
+  local counter="$1" outfile="$2"
+  grep -oP "${counter}\s*:\s*\{\K[0-9]+" "$outfile" | tail -1
+}
+
+for target_func in "${IDENTIFIED_FUNCS[@]}"; do
+  echo ""
+  echo "  --- Bisecting eliminations for: $target_func ---"
+
+  # Find source file for this function
+  src_file=$(get_src_for_func "$target_func")
+  if [[ -z "$src_file" ]]; then
+    echo "    Could not map function to source file, skipping."
+    continue
+  fi
+  echo "    Source file: $src_file"
+
+  # Get all functions in the source file, compute skip list (all except target)
+  mapfile -t src_funcs < <(get_funcs_in_src "$src_file")
+  skip_others=()
+  for f in "${src_funcs[@]}"; do
+    [[ "$f" != "$target_func" ]] && skip_others+=("$f")
+  done
+  skip_csv=$(join_csv "${skip_others[@]}")
+
+  echo "    Functions in file: ${#src_funcs[@]}, skipping ${#skip_others[@]} others"
+
+  # Discover total elimination count via -print-debug-counter.
+  # Build with a large range; the outfile captures the counter stats
+  # bypassing ninja's stderr buffering.
+  counter_outfile="$OUTPUT_DIR/.counter-${target_func}.txt"
+  > "$counter_outfile"
+  echo -n "    Discovering elimination count... "
+  build_with_counter 999999 "$skip_csv" "$src_file" "$target_func" "$counter_outfile"
+  max_n=$(get_counter_total "$COUNTER_NAME" "$counter_outfile")
+  if [[ -z "$max_n" || "$max_n" -eq 0 ]]; then
+    echo "no eliminations found, skipping."
+    rm -f "$counter_outfile"
+    continue
+  fi
+  echo "$max_n"
+  rm -f "$counter_outfile"
+
+  # Reference: time with all eliminations (reuse the discovery build)
+  echo -n "    time(all=$max_n elims)... "
+  time_all=$(measure_time)
+  echo "${time_all}s"
+
+  # Reference: time with zero eliminations (target also skipped)
+  echo -n "    time(none=0 elims)... "
+  build_with_counter 0 "$skip_csv" "$src_file" "$target_func"
+  time_none=$(measure_time)
+  echo "${time_none}s"
+
+  func_diff=$(pct_diff "$time_all" "$time_none")
+  echo "    Effect: ${func_diff}%"
+
+  if ! is_significant "$func_diff"; then
+    echo "    Not significant, skipping."
+    ELIMINATION_BISECT_JSON=$(echo "$ELIMINATION_BISECT_JSON" | jq \
+      --arg func "$target_func" --arg src "$src_file" --argjson max "$max_n" \
+      --arg ta "$time_all" --arg tn "$time_none" --arg diff "$func_diff" \
+      '. + {($func): {source_file: $src, counter_name: "'"$COUNTER_NAME"'", total_count: $max, culprit_index: null, time_all_elims: ($ta|tonumber), time_no_elims: ($tn|tonumber), diff_pct: ($diff|tonumber), note: "not significant"}}')
+    continue
+  fi
+
+  # Binary search on [0, max_n]
+  echo "    Binary search on [0, $max_n]..."
+  low=0
+  high=$max_n
+  step4_step=0
+  step4_iters="[]"
+
+  while [[ $low -lt $high ]]; do
+    mid=$(( (low + high) / 2 ))
+
+    if [[ $mid -eq 0 ]]; then
+      t=$time_none
+    else
+      build_with_counter "$mid" "$skip_csv" "$src_file" "$target_func"
+      t=$(measure_time)
+    fi
+
+    diff_from_all=$(pct_diff "$t" "$time_all")
+    step4_step=$((step4_step + 1))
+
+    echo "    step=$step4_step  low=$low  high=$high  mid=$mid  time=${t}s  diff=${diff_from_all}%"
+
+    step4_iters=$(echo "$step4_iters" | jq \
+      --argjson step "$step4_step" --argjson mid "$mid" --arg t "$t" --arg d "$diff_from_all" \
+      '. + [{"step": $step, "mid": $mid, "time": ($t|tonumber), "diff_from_all": ($d|tonumber)}]')
+
+    if is_significant "$diff_from_all"; then
+      low=$((mid + 1))
+    else
+      high=$mid
+    fi
+  done
+
+  culprit=$low
+  echo "    >> Culprit elimination index: $culprit (0-indexed, out of $max_n)"
+
+  ELIMINATION_BISECT_JSON=$(echo "$ELIMINATION_BISECT_JSON" | jq \
+    --arg func "$target_func" --arg src "$src_file" --argjson max "$max_n" \
+    --argjson culprit "$culprit" --arg ta "$time_all" --arg tn "$time_none" \
+    --arg diff "$func_diff" --argjson iters "$step4_iters" \
+    '. + {($func): {source_file: $src, counter_name: "'"$COUNTER_NAME"'", total_count: $max, culprit_index: $culprit, time_all_elims: ($ta|tonumber), time_no_elims: ($tn|tonumber), diff_pct: ($diff|tonumber), iterations: $iters}}')
+
+  log_iteration "insn" "$step4_step" "$target_func:$culprit" "$time_all" "$time_none"
+done
+
+fi  # end NewGVN guard
+
+save_checkpoint "complete"
+
+fi  # end resume guard (step 4)
 
 # ── Write results ─────────────────────────────────────────────────────────────
 
@@ -612,6 +799,7 @@ jq -n \
   --argjson files "$(printf '%s\n' "${IDENTIFIED_FILES[@]}" | jq -R . | jq -s .)" \
   --argjson funcs "$(printf '%s\n' "${IDENTIFIED_FUNCS[@]}" | jq -R . | jq -s .)" \
   --argjson iterations "$ITERATIONS_JSON" \
+  --argjson elim_bisect "$ELIMINATION_BISECT_JSON" \
   '{
     benchmark: $bench,
     variant: $variant,
@@ -621,7 +809,8 @@ jq -n \
     total_diff_pct: ($total_diff | tonumber),
     files_identified: $files,
     functions_identified: $funcs,
-    iterations: $iterations
+    iterations: $iterations,
+    elimination_bisect: $elim_bisect
   }' > "$OUTPUT_JSON"
 
 rm -f "$CHECKPOINT"
@@ -631,3 +820,6 @@ echo "=== Done ==="
 echo "  Results: $OUTPUT_JSON"
 echo "  Files:     ${IDENTIFIED_FILES[*]}"
 echo "  Functions: ${IDENTIFIED_FUNCS[*]}"
+if [[ "$ELIMINATION_BISECT_JSON" != "{}" ]]; then
+  echo "  Eliminations: $(echo "$ELIMINATION_BISECT_JSON" | jq -r 'to_entries[] | "    \(.key): index \(.value.culprit_index // "N/A") / \(.value.total_count)"')"
+fi

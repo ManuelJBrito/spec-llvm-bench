@@ -20,6 +20,8 @@ Options (key=value):
   skip_gvn_srcs=a.c,b.cpp   Skip GVN entirely for these source files
   skip_gvn_funcs=f1,f2       Skip GVN for these functions (per-function)
   gvn_func_skip_flag=FLAG    Per-function skip flag name (skip-gvn-for-funcs or skip-newgvn-for-funcs)
+  debug_counter=SPEC         Debug counter spec (e.g. gvn-eliminate=0-5)
+  debug_counter_src=file.c   Only apply debug counter to this source file
 
 Examples:
   $0 NoGVN
@@ -48,6 +50,9 @@ TIME_PASSES=0
 SKIP_GVN_SRCS=""
 SKIP_GVN_FUNCS=""
 GVN_FUNC_SKIP_FLAG=""
+DEBUG_COUNTER=""
+DEBUG_COUNTER_SRC=""
+DEBUG_COUNTER_OUTFILE=""
 
 case "${1:-}" in
   -h|--help)
@@ -85,6 +90,15 @@ for arg in "$@"; do
       ;;
     gvn_func_skip_flag=*)
       GVN_FUNC_SKIP_FLAG="${arg#*=}"
+      ;;
+    debug_counter=*)
+      DEBUG_COUNTER="${arg#*=}"
+      ;;
+    debug_counter_src=*)
+      DEBUG_COUNTER_SRC="${arg#*=}"
+      ;;
+    debug_counter_outfile=*)
+      DEBUG_COUNTER_OUTFILE="${arg#*=}"
       ;;
     *)
       die "Unknown argument: $arg"
@@ -125,6 +139,9 @@ export DBG_PASS="${DBG_PASS:-}"
 export SKIP_GVN_SRCS
 export SKIP_GVN_FUNCS
 export GVN_FUNC_SKIP_FLAG
+export DEBUG_COUNTER
+export DEBUG_COUNTER_SRC
+export DEBUG_COUNTER_OUTFILE
 
 # Configure the build
 CMAKE_ARGS=(

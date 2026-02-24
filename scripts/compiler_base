@@ -33,12 +33,25 @@ if [[ -n "$SKIP_GVN_SRCS" && -n "$SRC_BASE" ]]; then
   IFS=',' read -ra _skip_srcs <<< "$SKIP_GVN_SRCS"
   for _s in "${_skip_srcs[@]}"; do
     if [[ "$SRC_BASE" == "$_s" ]]; then
-      EXTRA_FLAGS="-mllvm -skip-gvn"
+      EXTRA_FLAGS="$EXTRA_FLAGS -mllvm -skip-gvn"
       break
     fi
   done
-elif [[ -n "$SKIP_GVN_FUNCS" && -n "$GVN_FUNC_SKIP_FLAG" ]]; then
-  EXTRA_FLAGS="-mllvm -${GVN_FUNC_SKIP_FLAG}=${SKIP_GVN_FUNCS}"
+fi
+if [[ -n "$SKIP_GVN_FUNCS" && -n "$GVN_FUNC_SKIP_FLAG" ]]; then
+  EXTRA_FLAGS="$EXTRA_FLAGS -mllvm -${GVN_FUNC_SKIP_FLAG}=${SKIP_GVN_FUNCS}"
+fi
+
+# === Debug counter support (for instruction-level bisection) ===
+# DEBUG_COUNTER: counter spec, e.g. "gvn-eliminate=0-5"
+# DEBUG_COUNTER_SRC: only apply to this source file (basename)
+# DEBUG_COUNTER_OUTFILE: if set, add -print-debug-counter and tee stderr to this file
+_DC_MATCH=0
+if [[ -n "${DEBUG_COUNTER:-}" && -n "${DEBUG_COUNTER_SRC:-}" && -n "$SRC_BASE" ]]; then
+  if [[ "$SRC_BASE" == "$DEBUG_COUNTER_SRC" ]]; then
+    EXTRA_FLAGS="$EXTRA_FLAGS -mllvm -debug-counter=${DEBUG_COUNTER}"
+    [[ -n "${DEBUG_COUNTER_OUTFILE:-}" ]] && _DC_MATCH=1
+  fi
 fi
 
 # === Debug output support ===
@@ -62,8 +75,18 @@ DBG_FLAGS="-mllvm -print-module-scope -mllvm -print-before=${_DBG_PASS} -mllvm -
 if [[ -n "$DBG_FUNCS" ]]; then
   DBG_FLAGS="$DBG_FLAGS -mllvm -filter-print-funcs=$DBG_FUNCS"
 fi
+# Build final flag set
 if [[ "$DBG_MODE" == "1" ]]; then
-  exec "$CLANG" "$@" $COMMON_FLAGS $EXTRA_FLAGS $DBG_FLAGS
+  _ALL_FLAGS="$COMMON_FLAGS $EXTRA_FLAGS $DBG_FLAGS"
 else
-  exec "$CLANG" "$@" $COMMON_FLAGS $EXTRA_FLAGS
+  _ALL_FLAGS="$COMMON_FLAGS $EXTRA_FLAGS"
 fi
+
+# When capturing debug counter output, add -print-debug-counter and tee stderr
+# to the outfile. Can't use exec here since we need to capture stderr.
+if [[ "$_DC_MATCH" == "1" ]]; then
+  "$CLANG" "$@" $_ALL_FLAGS -mllvm -print-debug-counter 2> >(tee -a "$DEBUG_COUNTER_OUTFILE" >&2)
+  exit $?
+fi
+
+exec "$CLANG" "$@" $_ALL_FLAGS
