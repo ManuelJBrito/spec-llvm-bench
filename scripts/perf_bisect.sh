@@ -618,8 +618,7 @@ echo "--- Step 4: Instruction-level bisection ---"
 get_src_for_func() {
   local func="$1"
   for src in "${IDENTIFIED_FILES[@]}"; do
-    local base="${src%.c*}"
-    for objfile in $(find "$BUILD_DIR/$SPEC_TARGET" -name "${base}.o" 2>/dev/null); do
+    for objfile in $(find "$BUILD_DIR/$SPEC_TARGET" -name "${src}.o" 2>/dev/null); do
       if nm --defined-only "$objfile" 2>/dev/null | awk '/ [Tt] /' | grep -qw "$func"; then
         echo "$src"
         return
@@ -630,8 +629,8 @@ get_src_for_func() {
 
 # Helper: get all defined functions in a source file's object.
 get_funcs_in_src() {
-  local src="$1" base="${1%.c*}"
-  for objfile in $(find "$BUILD_DIR/$SPEC_TARGET" -name "${base}.o" 2>/dev/null); do
+  local src="$1"
+  for objfile in $(find "$BUILD_DIR/$SPEC_TARGET" -name "${src}.o" 2>/dev/null); do
     nm --defined-only "$objfile" 2>/dev/null | awk '/ [Tt] / {print $3}' | grep -v '^\.'
   done | sort -u
 }
