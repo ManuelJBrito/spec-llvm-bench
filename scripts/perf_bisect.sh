@@ -640,24 +640,25 @@ get_funcs_in_src() {
   done | sort -u
 }
 
-# Helper: build with debug counter gating N eliminations for the target function.
+# Helper: build with debug counter gating eliminations for the target function.
 # All other functions in the source file are skipped via skip_gvn_funcs.
-# N=0 means the target is also skipped (zero eliminations).
+# Range "skip" means the target is also skipped (zero eliminations).
+# Range "0-5" means allow eliminations 0 through 5, etc.
 # Optional 5th arg: path to capture -print-debug-counter output.
 build_with_counter() {
-  local n="$1" skip_csv="$2" src="$3" target_func="$4"
+  local range="$1" skip_csv="$2" src="$3" target_func="$4"
   local counter_outfile="${5:-}"
 
   local extra_args=()
 
-  if [[ $n -eq 0 ]]; then
+  if [[ "$range" == "skip" ]]; then
     # Skip target function too — zero eliminations
     local all_skip="$target_func"
     [[ -n "$skip_csv" ]] && all_skip="${skip_csv},${target_func}"
     extra_args+=(skip_gvn_funcs="$all_skip" gvn_func_skip_flag="$GVN_FUNC_SKIP_FLAG")
   else
     extra_args+=(skip_gvn_funcs="$skip_csv" gvn_func_skip_flag="$GVN_FUNC_SKIP_FLAG")
-    extra_args+=(debug_counter="${COUNTER_NAME}=0-$((n-1))" debug_counter_src="$src")
+    extra_args+=(debug_counter="${COUNTER_NAME}=${range}" debug_counter_src="$src")
     [[ -n "$counter_outfile" ]] && extra_args+=(debug_counter_outfile="$counter_outfile")
   fi
 
@@ -704,7 +705,7 @@ for target_func in "${IDENTIFIED_FUNCS[@]}"; do
   counter_outfile="$OUTPUT_DIR/.counter-${target_func}.txt"
   > "$counter_outfile"
   echo -n "    Discovering elimination count... "
-  build_with_counter 999999 "$skip_csv" "$src_file" "$target_func" "$counter_outfile"
+  build_with_counter "0-999998" "$skip_csv" "$src_file" "$target_func" "$counter_outfile"
   max_n=$(get_counter_total "$COUNTER_NAME" "$counter_outfile")
   if [[ -z "$max_n" || "$max_n" -eq 0 ]]; then
     echo "no eliminations found, skipping."
@@ -721,7 +722,7 @@ for target_func in "${IDENTIFIED_FUNCS[@]}"; do
 
   # Reference: time with zero eliminations (target also skipped)
   echo -n "    time(none=0 elims)... "
-  build_with_counter 0 "$skip_csv" "$src_file" "$target_func"
+  build_with_counter "skip" "$skip_csv" "$src_file" "$target_func"
   time_none=$(measure_time)
   echo "${time_none}s"
 
@@ -737,8 +738,8 @@ for target_func in "${IDENTIFIED_FUNCS[@]}"; do
     continue
   fi
 
-  # Binary search on [0, max_n]
-  echo "    Binary search on [0, $max_n]..."
+  # Binary search on [0, max_n) — tests both halves like file/function bisection
+  echo "    Binary search on [0, $max_n)..."
   low=0
   high=$max_n
   step4_step=0
@@ -747,30 +748,56 @@ for target_func in "${IDENTIFIED_FUNCS[@]}"; do
   while [[ $low -lt $high ]]; do
     mid=$(( (low + high) / 2 ))
 
+    # Test left half: allow [0, mid)
     if [[ $mid -eq 0 ]]; then
-      t=$time_none
+      time_lo=$time_none
     else
-      build_with_counter "$mid" "$skip_csv" "$src_file" "$target_func"
-      t=$(measure_time)
+      build_with_counter "0-$((mid-1))" "$skip_csv" "$src_file" "$target_func"
+      time_lo=$(measure_time)
     fi
 
-    diff_from_all=$(pct_diff "$t" "$time_all")
+    # Test right half: allow [mid, max_n)
+    if [[ $mid -eq $max_n ]]; then
+      time_hi=$time_none
+    else
+      build_with_counter "$mid-$((max_n-1))" "$skip_csv" "$src_file" "$target_func"
+      time_hi=$(measure_time)
+    fi
+
+    local diff_lo diff_hi
+    diff_lo=$(pct_diff "$time_lo" "$time_all")
+    diff_hi=$(pct_diff "$time_hi" "$time_all")
     step4_step=$((step4_step + 1))
 
-    echo "    step=$step4_step  low=$low  high=$high  mid=$mid  time=${t}s  diff=${diff_from_all}%"
+    echo "    step=$step4_step  low=$low  high=$high  mid=$mid"
+    echo "      [0,$((mid-1))]: ${time_lo}s (${diff_lo}%)  [$mid,$((max_n-1))]: ${time_hi}s (${diff_hi}%)"
 
     step4_iters=$(echo "$step4_iters" | jq \
-      --argjson step "$step4_step" --argjson mid "$mid" --arg t "$t" --arg d "$diff_from_all" \
-      '. + [{"step": $step, "mid": $mid, "time": ($t|tonumber), "diff_from_all": ($d|tonumber)}]')
+      --argjson step "$step4_step" --argjson mid "$mid" \
+      --arg tlo "$time_lo" --arg dlo "$diff_lo" \
+      --arg thi "$time_hi" --arg dhi "$diff_hi" \
+      '. + [{"step": $step, "mid": $mid, "time_lo": ($tlo|tonumber), "diff_lo": ($dlo|tonumber), "time_hi": ($thi|tonumber), "diff_hi": ($dhi|tonumber)}]')
 
-    if is_significant "$diff_from_all"; then
+    local sig_lo=0 sig_hi=0
+    is_significant "$diff_lo" && sig_lo=1
+    is_significant "$diff_hi" && sig_hi=1
+
+    if [[ $sig_lo -eq 0 && $sig_hi -eq 1 ]]; then
+      echo "      -> Culprit in [0, $mid)"
+      high=$mid
+    elif [[ $sig_lo -eq 1 && $sig_hi -eq 0 ]]; then
+      echo "      -> Culprit in [$mid, $max_n)"
       low=$((mid + 1))
+    elif [[ $sig_lo -eq 1 && $sig_hi -eq 1 ]]; then
+      echo "      -> Neither half sufficient — multiple interacting eliminations"
+      break
     else
+      echo "      -> Both halves sufficient — noise? Narrowing left."
       high=$mid
     fi
   done
 
-  culprit=$low
+  culprit=$((low > 0 ? low - 1 : 0))
   echo "    >> Culprit elimination index: $culprit (0-indexed, out of $max_n)"
 
   ELIMINATION_BISECT_JSON=$(echo "$ELIMINATION_BISECT_JSON" | jq \
