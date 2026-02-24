@@ -673,7 +673,7 @@ build_with_counter() {
 # Output format: "counter-name : {N,range}"  →  extracts N.
 get_counter_total() {
   local counter="$1" outfile="$2"
-  grep -oP "${counter}\s*:\s*\{\K[0-9]+" "$outfile" | tail -1
+  grep -oP "^\s*${counter}\s*:\s*\{\K[0-9]+" "$outfile"
 }
 
 for target_func in "${IDENTIFIED_FUNCS[@]}"; do
