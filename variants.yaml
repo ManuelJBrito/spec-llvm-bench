@@ -57,6 +57,17 @@
     -mllvm -regalloc=pbqp
 
 
+# --- GVNPRE ablation: nonlocal load elim off ---
+- id: GVNPRE-s1-p0-greedy-no-nlldelim
+  gvn_base: GVNPRE
+  simpl: 1
+  pre: 0
+  regalloc: greedy
+  flags: >
+    -mllvm -enable-pre=false
+    -mllvm -enable-gvn-nonlocal-load-elim=false
+    -mllvm -regalloc=greedy
+
 # --- NewGVN optimistic (simpl=1, pre=0, regalloc varies) ---
 - id: NewGVN-opt-s1-p0-greedy
   gvn_base: NewGVN
