@@ -77,6 +77,8 @@
   regalloc: greedy
   flags: >
     -mllvm -enable-newgvn=true
+    -mllvm -newgvn-enable-pre=false
+    -mllvm -newgvn-enable-load-pre=false
     -mllvm -regalloc=greedy
 
 - id: NewGVN-opt-s1-p0-fast
@@ -87,6 +89,8 @@
   regalloc: fast
   flags: >
     -mllvm -enable-newgvn=true
+    -mllvm -newgvn-enable-pre=false
+    -mllvm -newgvn-enable-load-pre=false
     -mllvm -regalloc=fast
 
 - id: NewGVN-opt-s1-p0-pbqp
@@ -97,4 +101,182 @@
   regalloc: pbqp
   flags: >
     -mllvm -enable-newgvn=true
+    -mllvm -newgvn-enable-pre=false
+    -mllvm -newgvn-enable-load-pre=false
+    -mllvm -regalloc=pbqp
+
+# --- NewGVN feature testing (all features at once) ---
+- id: NewGVN-all
+  gvn_base: NewGVN
+  regalloc: greedy
+  flags: >
+    -mllvm -enable-newgvn=true
+    -mllvm -regalloc=greedy
+
+# --- NewGVN individual feature testing ---
+- id: NewGVN-cross-type
+  gvn_base: NewGVN
+  regalloc: greedy
+  flags: >
+    -mllvm -enable-newgvn=true
+    -mllvm -newgvn-enable-cross-type-forwarding=true
+    -mllvm -newgvn-enable-phi-translation=false
+    -mllvm -newgvn-enable-pre=false
+    -mllvm -newgvn-enable-load-pre=false
+    -mllvm -newgvn-enable-undef-alloca=false
+    -mllvm -newgvn-enable-assume-propagation=false
+    -mllvm -newgvn-enable-trunc-equality=false
+    -mllvm -newgvn-enable-block-merge=false
+    -mllvm -regalloc=greedy
+
+- id: NewGVN-phi-trans
+  gvn_base: NewGVN
+  regalloc: greedy
+  flags: >
+    -mllvm -enable-newgvn=true
+    -mllvm -newgvn-enable-cross-type-forwarding=false
+    -mllvm -newgvn-enable-phi-translation=true
+    -mllvm -newgvn-enable-pre=false
+    -mllvm -newgvn-enable-load-pre=false
+    -mllvm -newgvn-enable-undef-alloca=false
+    -mllvm -newgvn-enable-assume-propagation=false
+    -mllvm -newgvn-enable-trunc-equality=false
+    -mllvm -newgvn-enable-block-merge=false
+    -mllvm -regalloc=greedy
+
+- id: NewGVN-pre
+  gvn_base: NewGVN
+  regalloc: greedy
+  flags: >
+    -mllvm -enable-newgvn=true
+    -mllvm -newgvn-enable-cross-type-forwarding=false
+    -mllvm -newgvn-enable-phi-translation=false
+    -mllvm -newgvn-enable-pre=true
+    -mllvm -newgvn-enable-load-pre=true
+    -mllvm -newgvn-enable-undef-alloca=false
+    -mllvm -newgvn-enable-assume-propagation=false
+    -mllvm -newgvn-enable-trunc-equality=false
+    -mllvm -newgvn-enable-block-merge=false
+    -mllvm -regalloc=greedy
+
+- id: NewGVN-undef-alloca
+  gvn_base: NewGVN
+  regalloc: greedy
+  flags: >
+    -mllvm -enable-newgvn=true
+    -mllvm -newgvn-enable-cross-type-forwarding=false
+    -mllvm -newgvn-enable-phi-translation=false
+    -mllvm -newgvn-enable-pre=false
+    -mllvm -newgvn-enable-load-pre=false
+    -mllvm -newgvn-enable-undef-alloca=true
+    -mllvm -newgvn-enable-assume-propagation=false
+    -mllvm -newgvn-enable-trunc-equality=false
+    -mllvm -newgvn-enable-block-merge=false
+    -mllvm -regalloc=greedy
+
+- id: NewGVN-assume
+  gvn_base: NewGVN
+  regalloc: greedy
+  flags: >
+    -mllvm -enable-newgvn=true
+    -mllvm -newgvn-enable-cross-type-forwarding=false
+    -mllvm -newgvn-enable-phi-translation=false
+    -mllvm -newgvn-enable-pre=false
+    -mllvm -newgvn-enable-load-pre=false
+    -mllvm -newgvn-enable-undef-alloca=false
+    -mllvm -newgvn-enable-assume-propagation=true
+    -mllvm -newgvn-enable-trunc-equality=false
+    -mllvm -newgvn-enable-block-merge=false
+    -mllvm -regalloc=greedy
+
+- id: NewGVN-trunc-eq
+  gvn_base: NewGVN
+  regalloc: greedy
+  flags: >
+    -mllvm -enable-newgvn=true
+    -mllvm -newgvn-enable-cross-type-forwarding=false
+    -mllvm -newgvn-enable-phi-translation=false
+    -mllvm -newgvn-enable-pre=false
+    -mllvm -newgvn-enable-load-pre=false
+    -mllvm -newgvn-enable-undef-alloca=false
+    -mllvm -newgvn-enable-assume-propagation=false
+    -mllvm -newgvn-enable-trunc-equality=true
+    -mllvm -newgvn-enable-block-merge=false
+    -mllvm -regalloc=greedy
+
+- id: NewGVN-block-merge
+  gvn_base: NewGVN
+  regalloc: greedy
+  flags: >
+    -mllvm -enable-newgvn=true
+    -mllvm -newgvn-enable-cross-type-forwarding=false
+    -mllvm -newgvn-enable-phi-translation=false
+    -mllvm -newgvn-enable-pre=false
+    -mllvm -newgvn-enable-load-pre=false
+    -mllvm -newgvn-enable-undef-alloca=false
+    -mllvm -newgvn-enable-assume-propagation=false
+    -mllvm -newgvn-enable-trunc-equality=false
+    -mllvm -newgvn-enable-block-merge=true
+    -mllvm -regalloc=greedy
+
+# --- NewGVN optimistic with PRE (simpl=1, pre=1, regalloc varies) ---
+- id: NewGVN-opt-s1-p1-greedy
+  gvn_base: NewGVN
+  assumption: opt
+  simpl: 1
+  pre: 1
+  regalloc: greedy
+  flags: >
+    -mllvm -enable-newgvn=true
+    -mllvm -newgvn-enable-pre=true
+    -mllvm -newgvn-enable-load-pre=true
+    -mllvm -regalloc=greedy
+
+- id: NewGVN-opt-s1-p1-fast
+  gvn_base: NewGVN
+  assumption: opt
+  simpl: 1
+  pre: 1
+  regalloc: fast
+  flags: >
+    -mllvm -enable-newgvn=true
+    -mllvm -newgvn-enable-pre=true
+    -mllvm -newgvn-enable-load-pre=true
+    -mllvm -regalloc=fast
+
+- id: NewGVN-opt-s1-p1-pbqp
+  gvn_base: NewGVN
+  assumption: opt
+  simpl: 1
+  pre: 1
+  regalloc: pbqp
+  flags: >
+    -mllvm -enable-newgvn=true
+    -mllvm -newgvn-enable-pre=true
+    -mllvm -newgvn-enable-load-pre=true
+    -mllvm -regalloc=pbqp
+
+# --- GVNPRE with PRE (simpl=1, pre=1, regalloc varies) ---
+- id: GVNPRE-s1-p1-greedy
+  gvn_base: GVNPRE
+  simpl: 1
+  pre: 1
+  regalloc: greedy
+  flags: >
+    -mllvm -regalloc=greedy
+
+- id: GVNPRE-s1-p1-fast
+  gvn_base: GVNPRE
+  simpl: 1
+  pre: 1
+  regalloc: fast
+  flags: >
+    -mllvm -regalloc=fast
+
+- id: GVNPRE-s1-p1-pbqp
+  gvn_base: GVNPRE
+  simpl: 1
+  pre: 1
+  regalloc: pbqp
+  flags: >
     -mllvm -regalloc=pbqp
