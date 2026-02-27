@@ -29,7 +29,7 @@ EXTRA_FLAGS=""
 # SKIP_GVN_SRCS: comma-separated basenames — skip GVN entirely for these files
 # SKIP_GVN_FUNCS: comma-separated function names — skip GVN for these functions
 # GVN_FUNC_SKIP_FLAG: which per-function flag to use (skip-gvn-for-funcs or skip-newgvn-for-funcs)
-if [[ -n "$SKIP_GVN_SRCS" && -n "$SRC_BASE" ]]; then
+if [[ -n "${SKIP_GVN_SRCS:-}" && -n "$SRC_BASE" ]]; then
   IFS=',' read -ra _skip_srcs <<< "$SKIP_GVN_SRCS"
   for _s in "${_skip_srcs[@]}"; do
     if [[ "$SRC_BASE" == "$_s" ]]; then
@@ -38,7 +38,7 @@ if [[ -n "$SKIP_GVN_SRCS" && -n "$SRC_BASE" ]]; then
     fi
   done
 fi
-if [[ -n "$SKIP_GVN_FUNCS" && -n "$GVN_FUNC_SKIP_FLAG" ]]; then
+if [[ -n "${SKIP_GVN_FUNCS:-}" && -n "${GVN_FUNC_SKIP_FLAG:-}" ]]; then
   EXTRA_FLAGS="$EXTRA_FLAGS -mllvm -${GVN_FUNC_SKIP_FLAG}=${SKIP_GVN_FUNCS}"
 fi
 
@@ -59,7 +59,7 @@ fi
 # DBG_FUNCS: comma-separated function filter (omit to dump all functions)
 # DBG_PASS: pass to dump before (default: newgvn)
 DBG_MODE=0
-if [[ -n "$DBG_SRCS" && -n "$SRC_BASE" ]]; then
+if [[ -n "${DBG_SRCS:-}" && -n "$SRC_BASE" ]]; then
   IFS=',' read -ra _dbg_srcs <<< "$DBG_SRCS"
   for _d in "${_dbg_srcs[@]}"; do
     if [[ "$_d" == "*" || "$SRC_BASE" == "$_d" ]]; then
@@ -72,7 +72,7 @@ fi
 COMMON_FLAGS="$COMMON_FLAGS -no-pedantic"
 _DBG_PASS="${DBG_PASS:-newgvn}"
 DBG_FLAGS="-mllvm -print-module-scope -mllvm -print-before=${_DBG_PASS} -mllvm -ir-dump-directory=${IR_DUMP}"
-if [[ -n "$DBG_FUNCS" ]]; then
+if [[ -n "${DBG_FUNCS:-}" ]]; then
   DBG_FLAGS="$DBG_FLAGS -mllvm -filter-print-funcs=$DBG_FUNCS"
 fi
 # Build final flag set
