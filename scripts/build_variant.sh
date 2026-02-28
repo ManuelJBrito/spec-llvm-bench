@@ -162,10 +162,7 @@ if [[ -n "$RUN_UNDER" ]]; then
   CMAKE_ARGS+=(-DTEST_SUITE_RUN_UNDER="$RUN_UNDER")
 fi
 
-# Only configure if needed (avoid re-running cmake with env flags that break probes)
-if [[ ! -f "$BUILD_ROOT/CMakeCache.txt" ]]; then
-  cmake "${CMAKE_ARGS[@]}"
-fi
+cmake "${CMAKE_ARGS[@]}"
 
 cd "$BUILD_ROOT"
 
