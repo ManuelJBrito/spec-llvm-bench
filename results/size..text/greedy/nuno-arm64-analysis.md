@@ -5,13 +5,14 @@
 _No significant winners._
 
 ## Losers (< -3%)
-* **508.namd_r** (±0.00%): -3.37% (Variant: GVNPRE-simpl_1-pre_0-[])
+* **508.namd_r** (±0.00%): -4.64% (Variant: GVNPRE-simpl_1-pre_1-[])
 
 ## Variant Swings (> 3% difference among variants)
-* **508.namd_r**: 3.53% total swing
-  - Best (±0.00%): 0.15% (NewGVN-simpl_1-pre_0-[opt])
-  - Worst (±0.00%): -3.37% (GVNPRE-simpl_1-pre_0-[])
+* **508.namd_r**: 4.81% total swing
+  - Best (±0.00%): 0.18% (NewGVN-simpl_1-pre_0-[opt])
+  - Worst (±0.00%): -4.64% (GVNPRE-simpl_1-pre_1-[])
 
 ## Average Speedups
-* **GVNPRE-simpl_1-pre_0-[]**: 0.16%
-* **NewGVN-simpl_1-pre_0-[opt]**: 0.27%
+* **GVNPRE-simpl_1-pre_1-[]**: -0.13%
+* **NewGVN-simpl_1-pre_0-[opt]**: 0.24%
+* **NewGVN-simpl_1-pre_1-[opt]**: 0.15%

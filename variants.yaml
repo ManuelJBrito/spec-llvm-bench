@@ -256,6 +256,34 @@
     -mllvm -newgvn-enable-load-pre=true
     -mllvm -regalloc=pbqp
 
+# --- NewGVN balanced with PRE (simpl=1, pre=1, regalloc greedy) ---
+- id: NewGVN-bal-s1-p1-greedy
+  gvn_base: NewGVN
+  assumption: bal
+  simpl: 1
+  pre: 1
+  regalloc: greedy
+  flags: >
+    -mllvm -enable-newgvn=true
+    -mllvm -newgvn-assumption=balanced
+    -mllvm -newgvn-enable-pre=true
+    -mllvm -newgvn-enable-load-pre=true
+    -mllvm -regalloc=greedy
+
+# --- NewGVN pessimistic with PRE (simpl=1, pre=1, regalloc greedy) ---
+- id: NewGVN-pess-s1-p1-greedy
+  gvn_base: NewGVN
+  assumption: pess
+  simpl: 1
+  pre: 1
+  regalloc: greedy
+  flags: >
+    -mllvm -enable-newgvn=true
+    -mllvm -newgvn-assumption=pessimistic
+    -mllvm -newgvn-enable-pre=true
+    -mllvm -newgvn-enable-load-pre=true
+    -mllvm -regalloc=greedy
+
 # --- GVNPRE with PRE (simpl=1, pre=1, regalloc varies) ---
 - id: GVNPRE-s1-p1-greedy
   gvn_base: GVNPRE

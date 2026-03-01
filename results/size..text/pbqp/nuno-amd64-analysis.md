@@ -11,5 +11,6 @@ _No significant losers._
 _No significant performance difference between variants for this allocator._
 
 ## Average Speedups
-* **GVNPRE-simpl_1-pre_0-[]**: -0.07%
-* **NewGVN-simpl_1-pre_0-[opt]**: 0.23%
+* **GVNPRE-simpl_1-pre_1-[]**: -0.49%
+* **NewGVN-simpl_1-pre_0-[opt]**: 0.08%
+* **NewGVN-simpl_1-pre_1-[opt]**: -0.05%
