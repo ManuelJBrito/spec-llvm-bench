@@ -6,5 +6,6 @@ test-suite
 /toolchain
 /profiles/raw/
 /.planning/
+/.vscode
 /conf/
 /results/logs
