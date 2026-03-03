@@ -150,7 +150,7 @@ ssh "$HOST" "cd ${REMOTE_DIR} && git pull --ff-only" 2>&1 | pipe_to_log || EXIT_
 if [ "$EXIT_CODE" -eq 0 ] && [ "${REBUILD_LLVM:-0}" = "1" ]; then
     log "Rebuilding LLVM on ${HOST} ..."
     # shellcheck disable=SC2029
-    ssh "$HOST" "cd ${REMOTE_DIR}/llvm-project && git pull --ff-only && ninja -C build -j\$(nproc)" \
+    ssh "$HOST" "cd ${REMOTE_DIR}/llvm-project && git fetch origin && git reset --hard @{u} && ninja -C build -j\$(nproc)" \
         2>&1 | pipe_to_log || EXIT_CODE=$?
 fi
 
