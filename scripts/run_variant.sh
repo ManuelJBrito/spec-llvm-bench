@@ -15,7 +15,7 @@ mkdir -p results
 for ((i=0; i<max_iter; i++)); do
     echo "Running iteration $i..."
     "${TASKSET[@]}" "$LIT" --filter-out "638\.imagick_s|644\.nab_s" \
-            -j1 External/SPEC/ \
+            -j${jobs} External/SPEC/ \
             -o "results/${build_base}_results_${i}.json"
 done
 cd -
