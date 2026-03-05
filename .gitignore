@@ -8,4 +8,4 @@ test-suite
 /.planning/
 /.vscode
 /conf/
-/results/logs
+/results/logspaper/refs/
