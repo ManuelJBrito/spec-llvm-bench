@@ -2,7 +2,7 @@
 source "$(dirname "$0")/common.sh"
 
 build="$1"
-max_iter="${2:-3}"
+max_iter="${2:-1}"
 jobs="${3:-1}"
 
 TASKSET=(taskset -c 1)

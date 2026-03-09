@@ -256,6 +256,19 @@
     -mllvm -newgvn-enable-load-pre=true
     -mllvm -regalloc=pbqp
 
+- id: NewGVN-pess-s1-p1-pbqp
+  gvn_base: NewGVN
+  assumption: pess
+  simpl: 1
+  pre: 1
+  regalloc: pbqp
+  flags: >
+    -mllvm -enable-newgvn=true
+    -mllvm -newgvn-assumption=pessimistic
+    -mllvm -newgvn-enable-pre=true
+    -mllvm -newgvn-enable-load-pre=true
+    -mllvm -regalloc=pbqp
+
 # --- NewGVN balanced without PRE (simpl=1, pre=0, regalloc greedy) ---
 - id: NewGVN-bal-s1-p0-greedy
   gvn_base: NewGVN
@@ -336,3 +349,82 @@
   regalloc: pbqp
   flags: >
     -mllvm -regalloc=pbqp
+
+# --- Register pressure heuristic test variants ---
+# Base: NewGVN-pess+PRE with one heuristic toggled each
+
+- id: test-no-cascading
+  gvn_base: NewGVN
+  assumption: pess
+  simpl: 1
+  pre: 1
+  regalloc: greedy
+  flags: >
+    -mllvm -enable-newgvn=true -mllvm -newgvn-assumption=pessimistic
+    -mllvm -newgvn-enable-pre=true -mllvm -newgvn-enable-load-pre=true
+    -mllvm -newgvn-cascading-pre=false
+    -mllvm -regalloc=greedy
+
+- id: test-single-succ-walk
+  gvn_base: NewGVN
+  assumption: pess
+  simpl: 1
+  pre: 1
+  regalloc: greedy
+  flags: >
+    -mllvm -enable-newgvn=true -mllvm -newgvn-assumption=pessimistic
+    -mllvm -newgvn-enable-pre=true -mllvm -newgvn-enable-load-pre=true
+    -mllvm -newgvn-single-succ-walk=true
+    -mllvm -regalloc=greedy
+
+- id: test-no-transitive
+  gvn_base: NewGVN
+  assumption: pess
+  simpl: 1
+  pre: 1
+  regalloc: greedy
+  flags: >
+    -mllvm -enable-newgvn=true -mllvm -newgvn-assumption=pessimistic
+    -mllvm -newgvn-enable-pre=true -mllvm -newgvn-enable-load-pre=true
+    -mllvm -newgvn-enable-transitive-avail=false
+    -mllvm -regalloc=greedy
+
+- id: test-edge-split-100
+  gvn_base: NewGVN
+  assumption: pess
+  simpl: 1
+  pre: 1
+  regalloc: greedy
+  flags: >
+    -mllvm -enable-newgvn=true -mllvm -newgvn-assumption=pessimistic
+    -mllvm -newgvn-enable-pre=true -mllvm -newgvn-enable-load-pre=true
+    -mllvm -newgvn-max-pre-edge-splits=100
+    -mllvm -regalloc=greedy
+
+- id: test-all-heuristics
+  gvn_base: NewGVN
+  assumption: pess
+  simpl: 1
+  pre: 1
+  regalloc: greedy
+  flags: >
+    -mllvm -enable-newgvn=true -mllvm -newgvn-assumption=pessimistic
+    -mllvm -newgvn-enable-pre=true -mllvm -newgvn-enable-load-pre=true
+    -mllvm -newgvn-cascading-pre=false
+    -mllvm -newgvn-single-succ-walk=true
+    -mllvm -newgvn-enable-transitive-avail=false
+    -mllvm -newgvn-max-pre-edge-splits=100
+    -mllvm -regalloc=greedy
+
+- id: test-ssw-no-edge-split
+  gvn_base: NewGVN
+  assumption: pess
+  simpl: 1
+  pre: 1
+  regalloc: greedy
+  flags: >
+    -mllvm -enable-newgvn=true -mllvm -newgvn-assumption=pessimistic
+    -mllvm -newgvn-enable-pre=true -mllvm -newgvn-enable-load-pre=true
+    -mllvm -newgvn-single-succ-walk=true
+    -mllvm -newgvn-max-pre-edge-splits=0
+    -mllvm -regalloc=greedy
