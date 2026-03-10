@@ -269,6 +269,19 @@
     -mllvm -newgvn-enable-load-pre=true
     -mllvm -regalloc=pbqp
 
+- id: NewGVN-pess-s1-p0-pbqp
+  gvn_base: NewGVN
+  assumption: pess
+  simpl: 1
+  pre: 0
+  regalloc: pbqp
+  flags: >
+    -mllvm -enable-newgvn=true
+    -mllvm -newgvn-assumption=pessimistic
+    -mllvm -newgvn-enable-pre=false
+    -mllvm -newgvn-enable-load-pre=false
+    -mllvm -regalloc=pbqp
+
 # --- NewGVN balanced without PRE (simpl=1, pre=0, regalloc greedy) ---
 - id: NewGVN-bal-s1-p0-greedy
   gvn_base: NewGVN
@@ -414,6 +427,17 @@
     -mllvm -newgvn-single-succ-walk=true
     -mllvm -newgvn-enable-transitive-avail=false
     -mllvm -newgvn-max-pre-edge-splits=100
+    -mllvm -regalloc=greedy
+
+# --- AliveGVN oracle (all structural + semantic pairs) ---
+- id: AliveGVN-greedy
+  gvn_base: AliveGVN
+  regalloc: greedy
+  flags: >
+    -mllvm -enable-newgvn=true
+    -mllvm -newgvn-enable-pre=true
+    -mllvm -newgvn-enable-load-pre=true
+    -mllvm -alive-pairs-file=__PROJ_ROOT__/alive-pairs/all.json
     -mllvm -regalloc=greedy
 
 - id: test-ssw-no-edge-split
